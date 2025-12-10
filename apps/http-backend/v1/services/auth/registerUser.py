@@ -10,18 +10,22 @@ async def RegisterUser(user: User):
         db = getDB()
         existUser = await db["users"].find_one({"email": user.email})
         if existUser is not None:
-            if existUser.get("is_verified", False):
+            if existUser.get("is_verified"):
                 return response(message="User is Already Exist with this Email id")
             else:
-                verificationToken = GenerateEmailVerifyToken(user.email)
+                verificationToken = await GenerateEmailVerifyToken(user.email)
                 # send vai mail to user.
                 print("this is a verification token", verificationToken)
+                return response(
+                    message="Verication link is successfully sended to your email ID"
+                )
 
         newUser = user.dict()
         newUser["password"] = HashPassword(user.password)
         await db["users"].insert_one(newUser)
 
-        verificationToken = GenerateEmailVerifyToken(user.email)
+        verificationToken = await GenerateEmailVerifyToken(user.email)
+        print("this is a verification token", verificationToken)
         return response(
             message="Verication link is successfully sended to your email ID"
         )
