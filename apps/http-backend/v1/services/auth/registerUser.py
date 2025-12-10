@@ -3,6 +3,7 @@ from v1.db.ConnectDB import getDB
 from v1.utils.response import response
 from v1.utils.passwordHashing.passwordHashing import HashPassword
 from v1.utils.emailVerifyToken.emailVerifyToken import GenerateEmailVerifyToken
+from v1.utils.mailConfig.sendVerificationMail import SendVerificationEmail
 
 
 async def RegisterUser(user: User):
@@ -14,11 +15,20 @@ async def RegisterUser(user: User):
                 return response(message="User is Already Exist with this Email id")
             else:
                 verificationToken = await GenerateEmailVerifyToken(user.email)
-                # send vai mail to user.
                 print("this is a verification token", verificationToken)
-                return response(
-                    message="Verication link is successfully sended to your email ID"
+                sendMail = await SendVerificationEmail(
+                    email=user.email, name=user.full_name, token=verificationToken
                 )
+                if sendMail:
+                    return response(
+                        message="Verication link is successfully sended to your email ID"
+                    )
+                else:
+                    return response(
+                        status=False,
+                        code=500,
+                        message="Something went wrong while sending email, please try again",
+                    )
 
         newUser = user.dict()
         newUser["password"] = HashPassword(user.password)
@@ -26,9 +36,19 @@ async def RegisterUser(user: User):
 
         verificationToken = await GenerateEmailVerifyToken(user.email)
         print("this is a verification token", verificationToken)
-        return response(
-            message="Verication link is successfully sended to your email ID"
+        sendMail = await SendVerificationEmail(
+            email=user.email, name=user.full_name, token=verificationToken
         )
+        if sendMail:
+            return response(
+                message="Verication link is successfully sended to your email ID"
+            )
+        else:
+            return response(
+                status=False,
+                code=500,
+                message="Something went wrong while sending email, please try again",
+            )
 
     except Exception as e:
         print(f"this is a issue {str(e)}")
