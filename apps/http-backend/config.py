@@ -11,4 +11,14 @@ class Settings:
     ALGORITHM: str = os.getenv("ALGORITHM")
     EMAIL_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("EMAIL_TOKEN_EXPIRE_MINUTES"))
 
+    MAIL_USERNAME: str = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD: str = os.getenv("MAIL_PASSWORD")
+    MAIL_FROM: str = os.getenv("MAIL_FROM")
+    MAIL_PORT: int = os.getenv("MAIL_PORT")
+    MAIL_SERVER: str = os.getenv("MAIL_SERVER")
+    MAIL_STARTTLS: bool = os.getenv("MAIL_STARTTLS")
+    MAIL_SSL_TLS: bool = os.getenv("MAIL_SSL_TLS")
+    MAIL_FROM_NAME: str = os.getenv("DATABASE_NAME")
+    BASE_URL: str = os.getenv("DATABASE_NAME")
+
 settings = Settings()
