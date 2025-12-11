@@ -2,6 +2,8 @@ from fastapi import APIRouter
 from v1.services.auth.registerUser import RegisterUser
 from v1.model.userModel import User
 from v1.services.auth.verifyEmailToken import VerifyEmailTokenService
+from v1.services.auth.login import Login
+from v1.model.loginModel import LoginInputs
 
 router = APIRouter(prefix="/v1", tags=["v1"])
 
@@ -19,3 +21,8 @@ async def register(user: User):
 @router.get("/verify-email/{token}")
 async def verifyEmail(token):
     return await VerifyEmailTokenService(token)
+
+
+@router.post("/login")
+async def verifyEmail(cred: LoginInputs):
+    return await Login(cred)
