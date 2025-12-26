@@ -21,4 +21,8 @@ class Settings:
     MAIL_FROM_NAME: str = os.getenv("DATABASE_NAME")
     BASE_URL: str = os.getenv("DATABASE_NAME")
 
+
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY")
+
+
 settings = Settings()
