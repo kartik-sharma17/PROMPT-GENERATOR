@@ -1,5 +1,4 @@
-from typing import TypedDict, List
-from langchain_core.messages import BaseMessage
+from langgraph.graph import MessagesState
 
-class AgentState(TypedDict):
-    messages: List[BaseMessage]
+class AgentState(MessagesState):
+    pass
