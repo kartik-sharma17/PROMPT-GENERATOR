@@ -4,6 +4,8 @@ from v1.model.userModel import User
 from v1.services.auth.verifyEmailToken import VerifyEmailTokenService
 from v1.services.auth.login import Login
 from v1.model.loginModel import LoginInputs
+from v1.services.aiAgent.core import chatWithAgent
+from v1.model.userQuery import UserQuery
 
 router = APIRouter(prefix="/v1", tags=["v1"])
 
@@ -24,5 +26,13 @@ async def verifyEmail(token):
 
 
 @router.post("/login")
-async def verifyEmail(cred: LoginInputs):
+async def login(cred: LoginInputs):
     return await Login(cred)
+
+
+# for agent
+@router.post("/chat")
+async def chat(userQuery: UserQuery):
+    print("this is a query send by user = ")
+    print(userQuery.query)
+    return await chatWithAgent(userQuery.query)
