@@ -59,7 +59,7 @@ const page = () => {
             <hr className="border-[#6b6b6b] mt-10" />
             <p className="text-[#929294] text-xs mt-5">
               Don’t have an account ?{" "}
-              <Link href="#" className="text-emerald-300! font-medium hover:underline!">
+              <Link href="/signup" className="text-emerald-300! font-medium hover:underline!">
                 Create one
               </Link>
             </p>
