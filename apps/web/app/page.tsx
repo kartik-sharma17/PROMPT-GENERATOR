@@ -2,12 +2,15 @@
 
 import { useFormik } from "formik"
 import { CirclePlus, History, MessageSquareMore, MessageSquareShare, Mic, Palette, Search, Send, Settings, User } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 type Message = {
   role: "user" | "assistant"
   text: string
   timeStamp: string
+}
+type ProjectName = {
+  projectName: string
 }
 
 const initialValues = {
@@ -27,6 +30,12 @@ const demoMessages: Message[] = [
   { role: "user", text: "Hi, how y are doing", timeStamp: new Date().toISOString() },
   { role: "assistant", text: "Hi, how y are doing", timeStamp: new Date().toISOString() },
   { role: "user", text: "Hi, how y are doing", timeStamp: new Date().toISOString() },
+]
+
+const projects: ProjectName[] = [
+  { projectName: "Prompt Generator" },
+  { projectName: "Prompt Generator" },
+  { projectName: "Prompt Generator" },
 ]
 
 const page = () => {
@@ -56,10 +65,10 @@ const page = () => {
     formik.resetForm()
   }
 
-  if (true) {
+  if (chatScreen) {
     return (
       <div className="bg-black h-screen grid grid-cols-12">
-        <div className="col-span-2 border-[#212121] border-r-2 h-full">
+        <div className="col-span-2 border-[#212121] border-r h-full">
           <div className="h-15 border-b border-[#212121]">
 
           </div>
@@ -93,13 +102,16 @@ const page = () => {
         </div>
 
         <div className="col-span-12 md:col-span-8 h-full overflow-y-auto flex flex-col">
-          <div className="flex h-8/10 bg-red-400 flex-col p-4">
+          <div className="border-b border-[#212121] h-15">
+
+          </div>
+          <div className="flex flex-col p-4">
             {messages.map((message, index) => (
               <div key={index} className={`${message?.role === "assistant" ? "self-start" : "self-end"} bg-[#181818] flex flex-col mt-2 text-white p-2.5 rounded-lg text-sm`}>{message?.text} <span className="ml-auto text-xs mt-1">{formatTime(message?.timeStamp)}</span></div>
             ))}
           </div>
 
-          <div className="top-0 mt-auto mb-3">
+          <div className="mt-auto mb-3">
             <div className="bg-[#181818] mx-auto h-11 overflow-hidden w-7/10 rounded-lg! flex items-center px-2 gap-2">
               <button className="bg-[#282727] h-8 w-8 p-2 rounded-lg"><CirclePlus className="h-4 w-4  text-white cursor-pointer" /></button>
               <textarea className="w-full py-2 resize-none mx-auto h-full text-white focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none" onChange={formik.handleChange} name="text" value={formik.values.text} />
@@ -107,10 +119,15 @@ const page = () => {
               <button type="submit" onClick={handleSubmit} className="bg-[#282727] h-8 w-8 p-2 rounded-lg"><Send className="h-4 w-4  text-white cursor-pointer" /></button>
             </div>
           </div>
-          <p className="text-[#929294]! text-xs text-center mb-2">Ai prompt generator can make mistakes. Check important info. </p>
+          <p className="text-[#929294]! text-xs text-center mb-20">Ai prompt generator can make mistakes. Check important info. </p>
         </div>
-        <div className="col-span-2 border-[#212121] border-l-2 h-full">
+        <div className="col-span-2 border-[#212121] border-l h-full">
+          <div className="border-[#212121] border-b h-15">
 
+          </div>
+          <div className="p-2">
+            <button className="bg-[#181818] w-full flex gap-2 items-center justify-center text-white p-2.5 rounded-lg text-xs px-6"><CirclePlus className="h-4 w-4 text-white cursor-pointer" /> Add Project</button>
+          </div>
         </div>
       </div>
     )
