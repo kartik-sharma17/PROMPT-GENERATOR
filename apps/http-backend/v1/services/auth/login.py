@@ -32,7 +32,12 @@ async def Login(cred):
             )
             return response(
                 message="Login Successfully",
-                data={"token": token},
+                data={
+                    "token": token,
+                    "name": user["full_name"],
+                    "email": user["email"],
+                    "last_login": user["last_login"],
+                },
             )
         else:
             return response(

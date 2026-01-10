@@ -1,9 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 
 const page = () => {
     const [timeLeft, setTimeLeft] = useState(10)
+    const { token } = useParams<{ token: string }>()
 
     useEffect(() => {
         if (timeLeft === 0) return
@@ -14,6 +16,15 @@ const page = () => {
 
         return () => clearInterval(timer)
     }, [timeLeft])
+
+    useEffect(() => {
+        try {
+
+        }
+        catch (exception) {
+
+        }
+    })
 
     return (
         <div className="h-screen overflow-hidden relative">
