@@ -6,7 +6,7 @@ from config import settings
 
 async def SendVerificationEmail(email: str, name: str, token: str):
     try:
-        verify_link = f"{settings.BASE_URL}/verify-email/{token}"
+        verify_link = f"{settings.BASE_URL}/verify-account/{token}"
 
         with open("v1/utils/mailConfig/verifyMailTemplate.html") as f:
             html_template = Template(f.read())

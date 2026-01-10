@@ -1,25 +1,41 @@
 "use client"
 
 import { CustomInput, CustomPasswordInput } from "@/@core"
+import { useSignupMutation } from "@/redux/service/authService"
 import { registerSchema } from "@/zodSchema"
 import { useFormik } from "formik"
+import { LoaderCircle } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { toFormikValidationSchema } from "zod-formik-adapter"
 
 const initialValues = {
   full_name: "",
   email: "",
+  role: "user",
   phone: "",
   password: ""
 }
 
 const page = () => {
+  const [signupApi, { isLoading }] = useSignupMutation()
+  const navigate = useRouter()
+
   const formik = useFormik({
     initialValues,
     validationSchema: toFormikValidationSchema(registerSchema),
-    onSubmit: (values) => {
-      console.log("this si a submitting")
-      console.log(values)
+    onSubmit: async (values) => {
+      try {
+        const response = await signupApi(values).unwrap()
+        toast.success(response?.message || "Verification is Send to your Register Mail Id")
+        setTimeout(() => {
+          navigate.replace("/verifying-account")
+        }, 3000)
+      }
+      catch (exception: any) {
+        toast.error(exception?.data?.message || "something went wrong, please try again")
+      }
     }
   })
 
@@ -47,7 +63,7 @@ const page = () => {
 
             <CustomPasswordInput customClass="w-85" name="password" placeholder="Create Your Password" formik={formik} label="Password" />
 
-            <button type="submit" className="text-white mt-6 bg-linear-to-r from-emerald-400 to-cyan-500 w-full p-2.5 rounded-md text-sm">Register</button>
+            <button type="submit" disabled={isLoading} className="text-white flex gap-2 justify-center items-center mt-6 bg-linear-to-r from-emerald-400 to-cyan-500 w-full p-2.5 rounded-md text-sm">{isLoading && <LoaderCircle className="animate-spin w-4 h-4" />}Register</button>
 
             <hr className="border-[#6b6b6b] mt-10" />
             <p className="text-[#929294] text-xs mt-5">

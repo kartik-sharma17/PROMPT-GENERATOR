@@ -4,12 +4,11 @@ from datetime import datetime
 
 
 class User(BaseModel):
-    id: Optional[str] = None
     full_name: str
     email: EmailStr
     password: str
     role: str
-    avatar: Optional[str]
+    avatar: Optional[str] = None
     phone: Optional[str]
     is_active: bool = True
     is_verified: bool = False

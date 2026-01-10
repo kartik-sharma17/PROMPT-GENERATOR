@@ -1,9 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
+import { useVerifyAccountQuery } from "@/redux/service/authService"
+import { toast } from "sonner"
 
 const page = () => {
     const [timeLeft, setTimeLeft] = useState(10)
+    const { token } = useParams<{ token: string }>()
+    const { data, isLoading, isError, isSuccess } = useVerifyAccountQuery(token, {
+        skip: !token,
+    })
 
     useEffect(() => {
         if (timeLeft === 0) return
@@ -14,6 +21,17 @@ const page = () => {
 
         return () => clearInterval(timer)
     }, [timeLeft])
+
+    useEffect(() => {
+        console.log("this is a data => ", data)
+        if (!data) return
+        if (isSuccess) {
+            toast.success("Account Verify Successfully")
+        }
+        if (isError) {
+            toast.error("Something went wrong, please try again")
+        }
+    }, [data, isSuccess, isError])
 
     return (
         <div className="h-screen overflow-hidden relative">

@@ -19,7 +19,7 @@ class Settings:
     MAIL_STARTTLS: bool = os.getenv("MAIL_STARTTLS")
     MAIL_SSL_TLS: bool = os.getenv("MAIL_SSL_TLS")
     MAIL_FROM_NAME: str = os.getenv("DATABASE_NAME")
-    BASE_URL: str = os.getenv("DATABASE_NAME")
+    BASE_URL: str = os.getenv("BASE_URL")
 
 
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY")

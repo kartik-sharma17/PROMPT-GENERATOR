@@ -23,7 +23,15 @@ async def VerifyEmailTokenService(token):
             {"email": email, "name": user.get("full_name", "")}
         )
 
-        return response(message="Login Successfully", data={"token": access_token})
+        return response(
+            message="Login Successfully",
+            data={
+                "token": token,
+                "name": user["full_name"],
+                "email": user["email"],
+                "last_login": user["last_login"],
+            },
+        )
 
     else:
         print("somethings went wrong, please try again {e}")
