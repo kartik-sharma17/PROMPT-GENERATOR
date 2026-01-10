@@ -42,7 +42,7 @@ const projects: ProjectName[] = [
 const page = () => {
   const [chatScreen, setChatScreen] = useState(false)
   const [messages, setMessages] = useState<Message[]>(demoMessages)
-  const [{isLoading},chatApi] = useChatMutation()
+  const [chatApi, { isLoading }] = useChatMutation()
 
   const formik = useFormik({
     initialValues,
@@ -67,6 +67,7 @@ const page = () => {
     formik.resetForm()
   }
 
+  // main chat screen
   if (chatScreen) {
     return (
       <div className="bg-black h-screen grid grid-cols-12">
@@ -135,6 +136,7 @@ const page = () => {
     )
   }
 
+  // starting chat screen
   return (
     <div className="bg-black h-screen grid grid-cols-12">
       <div className="col-span-2 h-full"></div>

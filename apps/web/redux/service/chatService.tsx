@@ -1,6 +1,6 @@
-import { rootApi } from "@reduxjs/toolkit";
+import { RootApiService } from "../index"
 
-export const ChatApiSlice = rootApi.injectEndpoints({
+export const ChatApiSlice = RootApiService.injectEndpoints({
     endpoints: (builder) => ({
         chat: builder.mutation({
             query: (data) => ({
@@ -13,4 +13,4 @@ export const ChatApiSlice = rootApi.injectEndpoints({
     })
 })
 
-export const {useChatMutation} = ChatApiSlice;
+export const { useChatMutation } = ChatApiSlice;

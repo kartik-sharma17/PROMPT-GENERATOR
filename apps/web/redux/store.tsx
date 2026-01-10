@@ -1,9 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { rootApi } from '.'
+import { RootApiService } from '.'
 
 export const store = configureStore({
     reducer: {},
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware({serializableCheck: false,}).concat(rootApi.middleware)
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware({serializableCheck: false,}).concat(RootApiService.middleware)
 })
 
 export type RootState = ReturnType<typeof store.getState>
