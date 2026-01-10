@@ -12,7 +12,11 @@ async def RegisterUser(user: User):
         existUser = await db["users"].find_one({"email": user.email})
         if existUser is not None:
             if existUser.get("is_verified"):
-                return response(message="User is Already Exist with this Email id")
+                return response(
+                    message="User is Already Exist with this Email id",
+                    code=500,
+                    status=False,
+                )
             else:
                 verificationToken = await GenerateEmailVerifyToken(user.email)
                 print("this is a verification token", verificationToken)
