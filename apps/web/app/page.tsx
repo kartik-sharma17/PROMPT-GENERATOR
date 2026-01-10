@@ -1,5 +1,6 @@
 "use client"
 
+import { useChatMutation } from "@/redux/service/chatService"
 import { useFormik } from "formik"
 import { CirclePlus, History, MessageSquareMore, MessageSquareShare, Mic, Palette, Search, Send, Settings, User } from "lucide-react"
 import { useState } from "react"
@@ -41,6 +42,7 @@ const projects: ProjectName[] = [
 const page = () => {
   const [chatScreen, setChatScreen] = useState(false)
   const [messages, setMessages] = useState<Message[]>(demoMessages)
+  const [{isLoading},chatApi] = useChatMutation()
 
   const formik = useFormik({
     initialValues,
@@ -161,7 +163,6 @@ const page = () => {
       <div className="col-span-2 h-full"></div>
     </div>
   )
-
 
 }
 
