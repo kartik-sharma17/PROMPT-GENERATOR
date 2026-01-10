@@ -24,7 +24,7 @@ async def VerifyEmailTokenService(token):
         )
 
         return response(
-            message="Login Successfully",
+            message="Account Verification Successful",
             data={
                 "token": token,
                 "name": user["full_name"],
