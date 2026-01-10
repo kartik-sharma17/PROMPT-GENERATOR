@@ -4,7 +4,7 @@ export const ChatApiSlice = RootApiService.injectEndpoints({
     endpoints: (builder) => ({
         chat: builder.mutation({
             query: (data) => ({
-                url: `/batch`,
+                url: `/chat`,
                 method: "POST",
                 body: data
             }),

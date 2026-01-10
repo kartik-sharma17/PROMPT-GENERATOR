@@ -51,7 +51,7 @@ const page = () => {
     }
   })
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const text = formik.values.text.trim()
 
     if (!text) return
@@ -64,7 +64,30 @@ const page = () => {
 
     setMessages(prev => [...prev, message])
 
+    // calling the api
+    const payload = {
+      "query": text
+    }
+
     formik.resetForm()
+    try {
+      const response = await chatApi(payload).unwrap()
+      const reply = response?.data?.reply || "Somethings went wrong please try again"
+      const message: Message = {
+        text: reply,
+        role: "assistant",
+        timeStamp: new Date().toISOString()
+      }
+      setMessages(prev => [...prev, message])
+    }
+    catch (exception) {
+      console.log("somethings went wrong while calling a api", exception)
+    }
+  }
+
+  const handleStartChat = (e: any) => {
+    if (!chatScreen) setChatScreen(true)
+    handleSubmit()
   }
 
   // main chat screen
@@ -110,7 +133,7 @@ const page = () => {
           </div>
           <div className="flex flex-col p-4">
             {messages.map((message, index) => (
-              <div key={index} className={`${message?.role === "assistant" ? "self-start" : "self-end"} bg-[#181818] flex flex-col mt-2 text-white p-2.5 rounded-lg text-sm`}>{message?.text} <span className="ml-auto text-xs mt-1">{formatTime(message?.timeStamp)}</span></div>
+              <div key={index} className={`${message?.role === "assistant" ? "self-start" : "self-end"} bg-[#181818] max-w-7/10 flex flex-col mt-2 text-white p-2.5 rounded-lg text-sm`}>{message?.text} <span className="ml-auto text-xs mt-1">{formatTime(message?.timeStamp)}</span></div>
             ))}
           </div>
 
@@ -147,12 +170,12 @@ const page = () => {
           <h2 className="text-white mb-2 text-2xl text-center">Good To See You!</h2>
           <h4 className="text-white mb-2 text-lg text-center">How Can I be an Assistance?</h4>
           <p className="text-[#929294]! text-sm mb-6 text-center">i, am available 24/7 for you, ask me <br /> anything.</p>
-          <form>
+          <form onSubmit={formik.handleSubmit}>
             <div className="bg-[#181818] mx-auto h-11 overflow-hidden w-7/10 rounded-lg! flex items-center px-2 gap-2">
               <button className="bg-[#282727] h-8 w-8 p-2 rounded-lg"><CirclePlus className="h-4 w-4  text-white cursor-pointer" /></button>
               <textarea className="w-full py-2 resize-none mx-auto h-full text-white focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none" onChange={formik.handleChange} name="text" value={formik.values.text} />
               <button className="bg-[#282727] h-8 w-8 p-2 rounded-lg"><Mic className="h-4 w-4  text-white cursor-pointer" /></button>
-              <button type="submit" className="bg-[#282727] h-8 w-8 p-2 rounded-lg"><Send className="h-4 w-4  text-white cursor-pointer" /></button>
+              <button onClick={handleStartChat} className="bg-[#282727] h-8 w-8 p-2 rounded-lg"><Send className="h-4 w-4  text-white cursor-pointer" /></button>
             </div>
           </form>
           <div className="flex justify-evenly w-7/10 mx-auto mt-10">
