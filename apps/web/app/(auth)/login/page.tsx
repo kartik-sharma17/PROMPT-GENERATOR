@@ -1,9 +1,15 @@
 "use client"
 
 import { CustomInput, CustomPasswordInput } from "@/@core"
+import { useLoginMutation } from "@/redux/service/authService"
+import { setCredentials } from "@/redux/slice/authSlice"
 import { loginSchema } from "@/zodSchema"
 import { useFormik } from "formik"
+import { LoaderCircle } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useDispatch } from "react-redux"
+import { toast } from "sonner"
 import { toFormikValidationSchema } from "zod-formik-adapter"
 
 const initialValues = {
@@ -12,12 +18,28 @@ const initialValues = {
 }
 
 const page = () => {
+  const [loginApi, { isLoading }] = useLoginMutation()
+  const navigate = useRouter()
+  const dispatch = useDispatch()
+
   const formik = useFormik({
     initialValues,
     validationSchema: toFormikValidationSchema(loginSchema),
-    onSubmit: (values) => {
-      console.log("this si a submitting")
-      console.log(values)
+    onSubmit: async (values) => {
+      try {
+        const response = await loginApi(values).unwrap()
+        toast.success(response?.message || "Login Successfully")
+        dispatch(setCredentials({
+          user: response?.data,
+          token: response?.data?.token
+        }))
+        setTimeout(() => {
+          navigate.replace("/")
+        }, 3000)
+      }
+      catch (exception: any) {
+        toast.error(exception?.data?.message || "Something went wrong")
+      }
     }
   })
 
@@ -54,7 +76,7 @@ const page = () => {
               </Link>
             </div>
 
-            <button type="submit" className="text-white mt-6 bg-linear-to-r from-emerald-400 to-cyan-500 w-full p-2.5 rounded-md text-sm">Login</button>
+            <button type="submit" disabled={isLoading} className="flex items-center justify-center text-white mt-6 bg-linear-to-r gap-2 from-emerald-400 to-cyan-500 w-full p-2.5 rounded-md text-sm">{isLoading && <LoaderCircle className="animate-spin w-4 h-4" />} Login</button>
 
             <hr className="border-[#6b6b6b] mt-10" />
             <p className="text-[#929294] text-xs mt-5">
