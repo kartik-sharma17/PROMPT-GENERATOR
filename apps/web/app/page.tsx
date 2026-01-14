@@ -1,5 +1,6 @@
 "use client"
 
+import { TypingIndicator } from "@/@core/typeIndicator"
 import { useChatMutation } from "@/redux/service/chatService"
 import { useFormik } from "formik"
 import { CirclePlus, History, MessageSquareMore, MessageSquareShare, Mic, Palette, Search, Send, Settings, User } from "lucide-react"
@@ -26,13 +27,6 @@ const formatTime = (rawDate: string) => {
   })
 }
 
-
-const demoMessages: Message[] = [
-  { role: "user", text: "Hi, how y are doing", timeStamp: new Date().toISOString() },
-  { role: "assistant", text: "Hi, how y are doing", timeStamp: new Date().toISOString() },
-  { role: "user", text: "Hi, how y are doing", timeStamp: new Date().toISOString() },
-]
-
 const projects: ProjectName[] = [
   { projectName: "Prompt Generator" },
   { projectName: "Prompt Generator" },
@@ -41,7 +35,7 @@ const projects: ProjectName[] = [
 
 const page = () => {
   const [chatScreen, setChatScreen] = useState(false)
-  const [messages, setMessages] = useState<Message[]>(demoMessages)
+  const [messages, setMessages] = useState<Message[]>([])
   const [chatApi, { isLoading }] = useChatMutation()
 
   const formik = useFormik({
@@ -136,6 +130,13 @@ const page = () => {
               <div key={index} className={`${message?.role === "assistant" ? "self-start" : "self-end"} bg-[#181818] max-w-7/10 flex flex-col mt-2 text-white p-2.5 rounded-lg text-sm`}>{message?.text} <span className="ml-auto text-xs mt-1">{formatTime(message?.timeStamp)}</span></div>
             ))}
           </div>
+
+          {isLoading && (
+            <div className="flex ms-4">
+              {/* <Skeleton className="min-h-10 bg-white min-w-2xl rounded-lg" /> */}
+              <TypingIndicator />
+            </div>
+          )}
 
           <div className="mt-auto mb-3">
             <div className="bg-[#181818] mx-auto h-11 overflow-hidden w-7/10 rounded-lg! flex items-center px-2 gap-2">
