@@ -18,8 +18,10 @@ async def RegisterUser(user: User):
                     status=False,
                 )
             else:
+                newUser = user.dict()
+                newUser["password"] = HashPassword(user.password)
+                await db["users"].insert_one(newUser)
                 verificationToken = await GenerateEmailVerifyToken(user.email)
-                print("this is a verification token", verificationToken)
                 sendMail = await SendVerificationEmail(
                     email=user.email, name=user.full_name, token=verificationToken
                 )
