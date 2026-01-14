@@ -3,8 +3,8 @@
 import { TypingIndicator } from "@/@core/typeIndicator"
 import { useChatMutation } from "@/redux/service/chatService"
 import { useFormik } from "formik"
-import { CirclePlus, History, MessageSquareMore, MessageSquareShare, Mic, Palette, Search, Send, Settings, User } from "lucide-react"
-import { useState } from "react"
+import { CircleCheck, CirclePlus, History, MessageSquareMore, MessageSquareShare, Mic, Palette, Search, Send, Settings, User } from "lucide-react"
+import { useEffect, useState } from "react"
 
 type Message = {
   role: "user" | "assistant"
@@ -13,6 +13,11 @@ type Message = {
 }
 type ProjectName = {
   projectName: string
+}
+type PromptConstraintsType = {
+  label: string,
+  toolTipLabel: string,
+  key: string
 }
 
 const initialValues = {
@@ -33,10 +38,16 @@ const projects: ProjectName[] = [
   { projectName: "Prompt Generator" },
 ]
 
+const promptConstraints: PromptConstraintsType[] = [
+  { label: "don't change variable name", toolTipLabel: "don't change variable name", key: "don't_change_variable_name" },
+  { label: "don't change logic", toolTipLabel: "don't change logic", key: "don't_change_logic" },
+]
+
 const page = () => {
   const [chatScreen, setChatScreen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [chatApi, { isLoading }] = useChatMutation()
+  const [selectConstraints, setSelectedConstraints] = useState<string[]>([])
 
   const formik = useFormik({
     initialValues,
@@ -84,8 +95,20 @@ const page = () => {
     handleSubmit()
   }
 
+  const handleConstraintsClick = (key: string) => {
+    if (selectConstraints.includes(key)) {
+      setSelectedConstraints(selectConstraints.filter((value) => value !== key));
+      return
+    }
+    setSelectedConstraints(prev => [...prev, key])
+  }
+
+  useEffect(() => {
+    console.log(selectConstraints)
+  }, [selectConstraints])
+
   // main chat screen
-  if (chatScreen) {
+  if (true) {
     return (
       <div className="bg-black h-screen grid grid-cols-12">
         <div className="col-span-2 border-[#212121] border-r h-full">
@@ -139,6 +162,12 @@ const page = () => {
           )}
 
           <div className="mt-auto mb-3">
+            <div className="bg-[#2e2e2e] h-10 gap-1 mx-auto flex w-7/10 rounded-t-lg! p-1">
+              {promptConstraints?.map((data, index) => (
+                <button key={index} onClick={() => { handleConstraintsClick(data?.key) }} className={`bg-[#181818] flex gap-2 items-center ${selectConstraints.includes(data?.key) ? "text-green-500" : "text-white" }  p-1 rounded-lg text-xs px-4`}>{selectConstraints.includes(data?.key) && <CircleCheck className="h-4 w-4 text-green-500  cursor-pointer" />}{data?.label}</button>
+              ))
+              }
+            </div>
             <div className="bg-[#181818] mx-auto h-11 overflow-hidden w-7/10 rounded-lg! flex items-center px-2 gap-2">
               <button className="bg-[#282727] h-8 w-8 p-2 rounded-lg"><CirclePlus className="h-4 w-4  text-white cursor-pointer" /></button>
               <textarea className="w-full py-2 resize-none mx-auto h-full text-white focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none" onChange={formik.handleChange} name="text" value={formik.values.text} />
