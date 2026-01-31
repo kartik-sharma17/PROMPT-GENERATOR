@@ -1,6 +1,7 @@
 "use client"
 
-import { HowItWorks } from "@/@comp"
+import { CTASection, HeroSection, HowItWorks, PricingSection } from "@/@comp"
+import FeaturesSection from "@/@comp/featuresSection"
 import { CustomInput } from "@/@core"
 import { LoaderCircle } from "lucide-react"
 
@@ -10,9 +11,7 @@ const page = () => {
   return (
     <div className="bg-(--sec-bg) text-white">
       {/* hero section */}
-      <div className="h-screen">
-        hi
-      </div>
+      <HeroSection/>
 
       {/* demo video section */}
       <div className="p-10 px-15 my-10">
@@ -82,9 +81,13 @@ const page = () => {
       <HowItWorks />
 
       {/* featues section */}
-      <div>
+      <FeaturesSection/>
 
-      </div>
+      {/* pricing section */}
+      <PricingSection/>
+
+      {/* CTA Section */}
+      <CTASection/>
 
     </div>
   )

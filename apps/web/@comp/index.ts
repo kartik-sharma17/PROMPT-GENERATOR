@@ -1,1 +1,5 @@
 export * from './howItWork'
+export * from './featuresSection'
+export * from './HeroSection'
+export * from './CTASection'
+export * from './PricingSection'
