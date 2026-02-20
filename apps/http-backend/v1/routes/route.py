@@ -36,3 +36,4 @@ async def chat(userQuery: UserQuery):
     print("this is a query send by user = ")
     print(userQuery.query)
     return await chatWithAgent(userQuery.query)
+

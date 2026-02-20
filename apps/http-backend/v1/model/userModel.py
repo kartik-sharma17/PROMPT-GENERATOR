@@ -4,6 +4,7 @@ from datetime import datetime
 
 
 class User(BaseModel):
+    id: Optional[str] = Field(alias="_id")
     full_name: str
     email: EmailStr
     password: str
