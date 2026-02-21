@@ -2,10 +2,21 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from v1.db.ConnectDB import connectDB
 from v1.routes.route import router
+from v1.routes import projectRouter
 from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
+
+app.include_router(
+    projectRouter.router,
+    prefix="/v1"
+)
+
+app.include_router(
+    router,
+    prefix="/v1"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,4 +38,3 @@ async def startup_event():
 def welcome():
     return {"This is a api service for Ai prompt generator"}
 
-app.include_router(router)

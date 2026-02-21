@@ -23,6 +23,7 @@
     "packages/*"
   ],
   "dependencies": {
+    "gsap": "^3.14.2",
     "redux-persist": "^6.0.0"
   }
 }

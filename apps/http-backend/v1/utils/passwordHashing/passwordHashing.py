@@ -5,8 +5,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def HashPassword(password: str)-> str:
-    hashed = hashlib.sha256(password.encode("utf-8")).hexdigest()
-    return pwd_context.hash(hashed)
+    return pwd_context.hash(password)
 
 
 def VerifyPassword(plainPass: str, hashPass: str):

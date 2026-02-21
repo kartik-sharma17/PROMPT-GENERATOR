@@ -4,6 +4,9 @@ from datetime import datetime
 
 
 class User(BaseModel):
+    id: Optional[str] = Field(default=None,alias="_id")
+    class Config:
+        allow_population_by_field_name = True
     full_name: str
     email: EmailStr
     password: str
