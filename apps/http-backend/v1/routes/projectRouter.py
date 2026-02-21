@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
-from v1.schema.projectInfo.projectInfo import createProject
-from v1.services.projectService import createProjectService, getPorject
+from v1.schema.projectInfo.projectInfo import createProject, updateProjectParam
+from v1.services.projectService import createProjectService, deleteProject, getProject, updateProject
 from v1.dependency.getCurrentUser import getCurrentUser
 
 router = APIRouter(prefix="/project", tags=["project"])
@@ -13,7 +13,21 @@ async def createProject(
     return await createProjectService(details,current_user)
 
 @router.get("/list")
-async def createProject(
+async def getProjectRouter(
     current_user: dict = Depends(getCurrentUser)
     ):
-    return await getPorject(current_user)
+    return await getProject(current_user)
+
+@router.delete("/delete")
+async def deleteProjectRouter(
+    projectId: str,
+    current_user: dict = Depends(getCurrentUser)
+    ):
+    return await deleteProject(projectId,current_user)
+
+@router.patch("/update")
+async def updateProjectRouter(
+    projectDetails: updateProjectParam,
+    current_user: dict = Depends(getCurrentUser)
+    ):
+    return await updateProject(projectDetails,current_user)
