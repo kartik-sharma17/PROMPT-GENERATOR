@@ -28,7 +28,11 @@ async def Login(cred):
 
         if VerifyPassword(password, user["password"]):
             token = GenerateToken(
-                data={"email": user["email"], "name": user["full_name"]}
+                data={
+                    "email": user["email"],
+                    "userName": user["full_name"],
+                    "userId": str(user["_id"]),
+                }
             )
             return response(
                 message="Login Successfully",

@@ -6,8 +6,9 @@ from v1.services.auth.login import Login
 from v1.model.loginModel import LoginInputs
 from v1.services.aiAgent.core import chatWithAgent
 from v1.model.userQuery import UserQuery
+from v1.schema.authSchema.registerUser import registerUser
 
-router = APIRouter(prefix="/v1", tags=["v1"])
+router = APIRouter(prefix="/auth", tags=["v1"])
 
 
 @router.get("/")
@@ -16,7 +17,7 @@ async def welcome():
 
 
 @router.post("/register")
-async def register(user: User):
+async def register(user: registerUser):
     return await RegisterUser(user)
 
 

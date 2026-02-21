@@ -26,10 +26,10 @@ async def VerifyEmailTokenService(token):
         return response(
             message="Account Verification Successful",
             data={
-                "token": token,
+                "token": access_token,
                 "name": user["full_name"],
                 "email": user["email"],
-                "last_login": user["last_login"],
+                "last_login": user.get("last_login"),
             },
         )
 

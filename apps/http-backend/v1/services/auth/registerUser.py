@@ -4,9 +4,10 @@ from v1.utils.response import response
 from v1.utils.passwordHashing.passwordHashing import HashPassword
 from v1.utils.emailVerifyToken.emailVerifyToken import GenerateEmailVerifyToken
 from v1.utils.mailConfig.sendVerificationMail import SendVerificationEmail
+from v1.schema.authSchema.registerUser import registerUser
 
 
-async def RegisterUser(user: User):
+async def RegisterUser(user: registerUser):
     try:
         db = getDB()
         existUser = await db["users"].find_one({"email": user.email})
@@ -18,9 +19,19 @@ async def RegisterUser(user: User):
                     status=False,
                 )
             else:
-                newUser = user.dict()
-                newUser["password"] = HashPassword(user.password)
-                await db["users"].insert_one(newUser)
+                hashed_password = HashPassword(user.password)
+                await db["users"].update_one(
+                {"email": user.email},
+                {
+                    "$set": {
+                        "full_name": user.full_name,
+                        "password": hashed_password,
+                        "role": user.role,
+                        "avatar": user.avatar,
+                        "phone": user.phone,
+                    }
+                },
+            )
                 verificationToken = await GenerateEmailVerifyToken(user.email)
                 sendMail = await SendVerificationEmail(
                     email=user.email, name=user.full_name, token=verificationToken
@@ -36,9 +47,17 @@ async def RegisterUser(user: User):
                         message="Something went wrong while sending email, please try again",
                     )
 
-        newUser = user.dict()
-        newUser["password"] = HashPassword(user.password)
-        await db["users"].insert_one(newUser)
+
+        hashed_password = HashPassword(user.password)
+        new_user = User(
+            full_name=user.full_name,
+            email=user.email,
+            password=hashed_password,
+            role=user.role,
+            avatar=user.avatar,
+            phone= user.phone,
+        )
+        await db["users"].insert_one(new_user.dict(by_alias=True,exclude={"id"}))
 
         verificationToken = await GenerateEmailVerifyToken(user.email)
         print("this is a verification token", verificationToken)
