@@ -1,11 +1,12 @@
-from typing import Optional
 from pydantic import BaseModel, Field
+from typing import Literal, Optional
 from datetime import datetime
 
-class historyModel(BaseModel):
-    userId: str
-    title: str
+class Message(BaseModel):
+    historyId: str
+    userID: str
+    role: Literal["user", "assistant"]
+    content: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    lastMessage: Optional[str] = None
-    lastMessageAt: Optional[str] = None
+    tokensUsed: Optional[int] = 0
