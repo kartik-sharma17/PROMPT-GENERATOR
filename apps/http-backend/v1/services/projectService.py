@@ -8,6 +8,13 @@ from bson import ObjectId
 async def createProjectService(details: createProject, current_user):
     try:
         db = getDB()
+        
+        if current_user.get("message") == "Token Expired Please Try Again":
+            return response(
+                message="Token expire please try login again",
+                code=500,
+                status=False,
+            )
 
         userId = current_user.get("data").get("userId")
 
