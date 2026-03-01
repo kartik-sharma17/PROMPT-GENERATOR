@@ -1,14 +1,16 @@
-from v1.schema.projectInfo.projectInfo import createProject, updateProjectParam
+from email import message
+from pyexpat.errors import messages
+from v1.schema.historySchema import historyResponseSchema, messagesResponseSchema
 from v1.db.ConnectDB import getDB
 from v1.utils.response import response
 from v1.model.projectInfo import ProjectInfoTable
 from bson import ObjectId
 
 
-async def createProjectService(details: createProject, current_user):
+async def createHistory(current_user):
     try:
         db = getDB()
-        
+
         if current_user.get("message") == "Token Expired Please Try Again":
             return response(
                 message="Token expire please try login again",
@@ -61,7 +63,7 @@ async def createProjectService(details: createProject, current_user):
         )
 
 
-async def getProject(current_user):
+async def getHistory(current_user):
     try:
         db = getDB()
 
@@ -74,34 +76,74 @@ async def getProject(current_user):
 
         userId = current_user.get("data").get("userId")
 
-        userDetails = await db["users"].find_one({"_id": ObjectId(userId)})
+        histories = await (
+            db["historyModel"]
+            .find({"userId": userId})
+            .sort("updated_at", -1)
+            .limit(10)
+            .to_list(length=10)
+        )
 
-        if not userDetails:
+        historyResponse = []
+
+        for history in histories:
+            create = historyResponseSchema(
+                title=history.get("title"),
+                historyId=str(history.get("_id")),
+                updatedAt=history.get("updated_at").isoformat(),
+            )
+            historyResponse.append(create.dict())
+
+        return response(
+            message="history retrieved successfully",
+            data=historyResponse,
+            code=201,
+        )
+
+    except Exception as e:
+        print(f"Unexpected error occurred {str(e)}")
+        return response(
+            message=f"somethings went wrong, please try again",
+            code=500,
+            status=False,
+        )
+
+
+async def getMessages(historyId: str, current_user):
+    try:
+        db = getDB()
+
+        if current_user.get("message") == "Token Expired Please Try Again":
             return response(
-                message="User not found",
+                message="Token expire please try login again",
                 code=500,
                 status=False,
             )
 
-        projects = (
-            await db["ProjectInfoTable"].find({"userId": userId}).to_list(length=None)
+        userId = current_user.get("data").get("userId")
+
+        messages = await (
+            db["Message"]
+            .find({"historyId": historyId, "userID": userId})
+            .sort("created_at", -1)
+            .to_list(length=None)
         )
 
-        projectList = []
-
-        for project in projects:
-            projectList.append(
-                {
-                    "projectId": str(project.get("_id")),
-                    "projectName": project.get("projectName"),
-                    "projectDescription": project.get("projectDescription"),
-                    "technologiesUsed": project.get("technologiesUsed"),
-                }
-            )
+        messageResponse = [
+            messagesResponseSchema(
+                role=message.get("role"),
+                content=message.get("content"),
+                created_at=message.get("created_at").isoformat(),
+                tokensUsed=(
+                    message.get("tokensUsed") if message.get("tokensUsed") else None
+                ),
+            ).dict()
+            for message in messages
+        ]
 
         return response(
-            message="Successfully retrieved projects",
-            data=projectList,
+            message="messages retrieved successfully",
+            data=messageResponse,
             code=200,
         )
 
@@ -114,70 +156,35 @@ async def getProject(current_user):
         )
 
 
-async def deleteProject(projectId, current_user):
+async def deletehistory(historyId, current_user):
     try:
         db = getDB()
 
-        project = await db["ProjectInfoTable"].find_one({"_id": ObjectId(projectId)})
-
-        if not project:
+        if current_user.get("message") == "Token Expired Please Try Again":
             return response(
-                message="Project Not Found",
+                message="Token expire please try login again",
                 code=500,
                 status=False,
             )
 
-        await db["ProjectInfoTable"].delete_one({"_id": ObjectId(projectId)})
+        userId = current_user.get("data").get("userId")
 
-        return response(
-            message="project deleted successfully",
-            code=200,
-        )
-
-    except Exception as e:
-        print(f"Unexpected error occurred {str(e)}")
-        return response(
-            message=f"somethings went wrong, please try again",
-            code=500,
-            status=False,
-        )
-
-
-async def updateProject(projectDetails: updateProjectParam, current_user):
-    try:
-        db = getDB()
-
-        print(projectDetails)
-
-        projectId = projectDetails.projectId
-
-        project = await db["ProjectInfoTable"].find_one(
-            {
-                "_id": ObjectId(projectId),
-                "userId": current_user.get("data").get("userId")
-            }
+        project = await db["historyModel"].find_one(
+            {"_id": ObjectId(historyId), "userId": userId}
         )
 
         if not project:
             return response(
-                message="Project Not Found",
+                message="History Not Found",
                 code=500,
                 status=False,
             )
 
-        await db["ProjectInfoTable"].update_one(
-            {"_id": ObjectId(projectId)},
-            {
-                "$set": {
-                    "projectName": projectDetails.projectName,
-                    "projectDescription": projectDetails.projectDescription,
-                    "technologiesUsed": projectDetails.technologiesUsed,
-                }
-            },
-        )
+        await db["historyModel"].delete_one({"_id": ObjectId(historyId)})
+        await db["Message"].delete_many({"historyId": historyId})
 
         return response(
-            message="project Updated successfully",
+            message="History deleted successfully",
             code=200,
         )
 
