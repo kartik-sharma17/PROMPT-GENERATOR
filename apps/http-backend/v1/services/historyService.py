@@ -62,6 +62,7 @@ async def createHistory(current_user):
             status=False,
         )
 
+
 async def getHistory(current_user):
     try:
         db = getDB()
@@ -106,6 +107,7 @@ async def getHistory(current_user):
             code=500,
             status=False,
         )
+
 
 async def getMessages(historyId: str, current_user):
     try:
@@ -152,6 +154,7 @@ async def getMessages(historyId: str, current_user):
             code=500,
             status=False,
         )
+
 
 async def deletehistory(historyId, current_user):
     try:

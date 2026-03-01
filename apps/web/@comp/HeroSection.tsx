@@ -4,6 +4,7 @@ import { AnimatedHeadline } from "./AnimatedHeadline";
 import { PromptDemo } from "./PromptDemo";
 import { CTAButton } from "./CTAButton";
 import { ParticleField } from "./ParticleField";
+import { useRouter } from "next/navigation";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -29,6 +30,9 @@ const itemVariants: Variants = {
 };
 
 export const HeroSection = () => {
+
+  const route = useRouter()
+
   return (
     <section className="relative min-h-screen overflow-hidden py-20 flex flex-col justify-center">
       {/* Particle background */}
@@ -62,7 +66,7 @@ export const HeroSection = () => {
             variants={itemVariants}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            <CTAButton className="neon-glow-box">
+            <CTAButton onClick={()=>{route.push("/generate")}} className="neon-glow-box">
               Generate Prompt
             </CTAButton>
 
