@@ -62,7 +62,6 @@ async def createHistory(current_user):
             status=False,
         )
 
-
 async def getHistory(current_user):
     try:
         db = getDB()
@@ -107,7 +106,6 @@ async def getHistory(current_user):
             code=500,
             status=False,
         )
-
 
 async def getMessages(historyId: str, current_user):
     try:
@@ -155,7 +153,6 @@ async def getMessages(historyId: str, current_user):
             status=False,
         )
 
-
 async def deletehistory(historyId, current_user):
     try:
         db = getDB()
@@ -181,6 +178,7 @@ async def deletehistory(historyId, current_user):
             )
 
         await db["historyModel"].delete_one({"_id": ObjectId(historyId)})
+        await db["Message"].delete_many({"historyId": historyId})
 
         return response(
             message="History deleted successfully",
