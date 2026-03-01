@@ -15,20 +15,20 @@ async def manageHistory(
         db = getDB()
 
         if current_user.get("message") == "Token Expired Please Try Again":
-            return response(
-                message="Token expire please try login again",
-                code=500,
-                status=False,
-            )
+            return {
+                "message": "Token expire please try login again",
+                "code": 500,
+                "status": False,
+            }
 
         userId = current_user.get("data").get("userId")
 
         if userId is None:
-            return response(
-                message="User not found",
-                code=500,
-                status=False,
-            )
+            return {
+                "message": "User not found",
+                "code": 500,
+                "status": False,
+            }
 
         if body.historyId:
 
@@ -37,11 +37,11 @@ async def manageHistory(
             )
 
             if existingHistory is None:
-                return response(
-                    message="Chat not found, please start a new chat",
-                    code=500,
-                    status=False,
-                )
+                return {
+                    "message": "Chat not found, please start a new chat",
+                    "code": 500,
+                    "status": False,
+                }
 
             newMessage = messageModel.Message(
                 historyId=body.historyId,

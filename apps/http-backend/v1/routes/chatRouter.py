@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from v1.services.aiAgent.core import chatWithAgent
-from v1.model.userQuery import UserQuery
+from v1.services.historyService import getHistory
 from v1.dependency.historyDependency import manageHistory
-from v1.schema.historySchema import historySchema
+from v1.dependency.getCurrentUser import getCurrentUser
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -11,3 +11,8 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 @router.post("")
 async def chat(history: dict = Depends(manageHistory)):
     return await chatWithAgent(history)
+
+
+@router.get("/history")
+async def historyRoute(current_user: dict = Depends(getCurrentUser)):
+    return await getHistory(current_user)

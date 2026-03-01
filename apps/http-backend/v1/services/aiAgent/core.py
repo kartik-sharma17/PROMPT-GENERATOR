@@ -59,7 +59,7 @@ async def chatWithAgent(history: dict):
             return response(
                 status=False,
                 code=500,
-                message="somethings went wrong, can't save the history please try again later",
+                message=history.get("message"),
             )
 
     except Exception as e:
