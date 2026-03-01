@@ -12,3 +12,9 @@ class historyResponseSchema(BaseModel):
     title: str
     historyId: str
     updatedAt: str
+
+class messagesResponseSchema(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+    created_at: str
+    tokensUsed: Optional[int] = 0
