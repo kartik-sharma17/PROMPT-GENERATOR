@@ -2,8 +2,6 @@
 
 import { CTASection, HeroSection, HowItWorks, PricingSection } from "@/@comp"
 import FeaturesSection from "@/@comp/featuresSection"
-import { CustomInput } from "@/@core"
-import { LoaderCircle } from "lucide-react"
 
 
 const page = () => {
