@@ -1,8 +1,8 @@
 "use client"
 
 import { TypingIndicator } from "@/@core/typeIndicator"
-import { useChatMutation } from "@/redux/service/chatService"
-import { useCreateProjectMutation, useDeleteProjectMutation, useGetProjectQuery, useUpdateProjectMutation } from "@/redux/service/projectService"
+import { useChatMutation } from "@/reduxConfig/service/chatService"
+import { useCreateProjectMutation, useDeleteProjectMutation, useGetProjectQuery, useUpdateProjectMutation } from "@/reduxConfig/service/projectService"
 import { useFormik } from "formik"
 import { CircleCheck, CirclePlus, History, MessageSquareMore, MessageSquareShare, Mic, Palette, Pencil, Search, Send, Settings, Trash2, User, X } from "lucide-react"
 import { useEffect, useState } from "react"

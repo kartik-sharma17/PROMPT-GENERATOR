@@ -1,7 +1,7 @@
 "use client"
 
 import { CustomInput, CustomPasswordInput } from "@/@core"
-import { useSignupMutation } from "@/redux/service/authService"
+import { useSignupMutation } from "@/reduxConfig/service/authService"
 import { registerSchema } from "@/zodSchema"
 import { useFormik } from "formik"
 import { LoaderCircle } from "lucide-react"

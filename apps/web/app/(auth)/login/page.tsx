@@ -1,8 +1,8 @@
 "use client"
 
 import { CustomInput, CustomPasswordInput } from "@/@core"
-import { useLoginMutation } from "@/redux/service/authService"
-import { setCredentials } from "@/redux/slice/authSlice"
+import { useLoginMutation } from "@/reduxConfig/service/authService"
+import { setCredentials } from "@/reduxConfig/slice/authSlice"
 import { loginSchema } from "@/zodSchema"
 import { useFormik } from "formik"
 import { LoaderCircle } from "lucide-react"
