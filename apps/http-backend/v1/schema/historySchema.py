@@ -7,6 +7,7 @@ class historySchema(BaseModel):
     content: str
     historyId: Optional[str] = None
     role: Literal["user", "assistant"]
+    continueChat: bool = False
 
 class historyResponseSchema(BaseModel):
     title: str

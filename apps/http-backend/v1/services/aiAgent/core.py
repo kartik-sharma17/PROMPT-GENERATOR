@@ -1,5 +1,5 @@
 from v1.agent.core import graph
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage
 from v1.utils.response import response
 from v1.db.ConnectDB import getDB
 from v1.model import messageModel
@@ -15,6 +15,7 @@ async def chatWithAgent(history: dict):
 
             content = history.get("content")
             userId = history.get("current_user").get("data").get("userId")
+            historyId = history.get("historyId")
 
             if not userId:
                 return response(
@@ -22,8 +23,29 @@ async def chatWithAgent(history: dict):
                     code=500,
                     status=False,
                 )
+            
+            if historyId is None:
+                return {
+                    "message": "Chat not found, please start a new chat",
+                    "code": 500,
+                    "status": False,
+                }
+            
+            chat_messages = []
 
-            result = graph.invoke({"messages": [HumanMessage(content=content)]})
+            messages = await (db["Message"].find({"historyId": historyId, "userID": userId}).sort("created_at", -1).to_list(length=30))
+            
+            messages.reverse()
+            
+            for msg in messages:
+                if msg["role"] == "user":
+                    chat_messages.append(HumanMessage(content=msg["content"]))
+                else:
+                    chat_messages.append(AIMessage(content=msg["content"]))
+
+            chat_messages.append(HumanMessage(content=content))
+
+            result = graph.invoke({"messages": chat_messages})
 
             ai_response = result["messages"][-1].text
 
