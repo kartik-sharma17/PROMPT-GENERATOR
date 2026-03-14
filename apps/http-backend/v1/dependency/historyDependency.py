@@ -1,3 +1,5 @@
+from asyncio import constants
+
 from v1.schema.historySchema import historySchema
 from v1.model import messageModel, historyModel
 from .getCurrentUser import getCurrentUser
@@ -30,6 +32,8 @@ async def manageHistory(
                 "status": False,
             }
 
+        projectId = body.projectId if body.projectId else None
+
         if body.historyId:
 
             existingHistory = await db["historyModel"].find_one(
@@ -42,6 +46,21 @@ async def manageHistory(
                     "code": 500,
                     "status": False,
                 }
+
+            if projectId:
+                if projectId != existingHistory.get("projectId"):
+                    await db["historyModel"].update_one(
+                        {"_id": ObjectId(body.historyId)},
+                        {"$set": {"projectId": projectId}},
+                    )
+
+            constraints = body.constraints
+            if len(constraints) > 0:
+                if constraints != existingHistory.get("constraints"):
+                    await db["historyModel"].update_one(
+                        {"_id": ObjectId(body.historyId)},
+                        {"$set": {"constraints": constraints}},
+                    )
 
             newMessage = messageModel.Message(
                 historyId=body.historyId,
@@ -62,15 +81,19 @@ async def manageHistory(
                 "historyId": body.historyId,
                 "current_user": current_user,
                 "content": body.content,
-                "continueChat": body.continueChat
+                "projectId": projectId if projectId else None,
+                "constraints": body.constraints if body.constraints else None,
+                "continueChat": body.continueChat,
             }
 
         else:
-            title = " ".join(body.content.split()[:3])
+            title = " ".join(body.content.split()[:5])
 
             newHistory = historyModel.historyModel(
                 userId=userId,
                 title=title,
+                projectId=body.projectId if projectId else None,
+                constraints=body.constraints if len(body.constraints) > 0 else None,
             )
 
             createdHistory = await db["historyModel"].insert_one(newHistory.dict())
@@ -89,7 +112,9 @@ async def manageHistory(
                 "historyId": str(createdHistory.inserted_id),
                 "current_user": current_user,
                 "content": body.content,
-                "continueChat": body.continueChat
+                "projectId": projectId if projectId else None,
+                "constraints": body.constraints if body.constraints else None,
+                "continueChat": body.continueChat,
             }
 
     except Exception as e:
