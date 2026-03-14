@@ -62,6 +62,7 @@ async def manageHistory(
                 "historyId": body.historyId,
                 "current_user": current_user,
                 "content": body.content,
+                "continueChat": body.continueChat
             }
 
         else:
@@ -88,6 +89,7 @@ async def manageHistory(
                 "historyId": str(createdHistory.inserted_id),
                 "current_user": current_user,
                 "content": body.content,
+                "continueChat": body.continueChat
             }
 
     except Exception as e:

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import './globals.css'
-import { ReduxProvider } from "@/redux/reduxProvider";
+import { ReduxProvider } from "@/reduxConfig/reduxProvider";
 
 export const metadata: Metadata = {
   title: "Prompt Generator",

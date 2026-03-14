@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { useVerifyAccountQuery } from "@/redux/service/authService"
+import { useVerifyAccountQuery } from "@/reduxConfig/service/authService"
 import { toast } from "sonner"
 import { useDispatch } from "react-redux"
-import { setCredentials } from "@/redux/slice/authSlice"
+import { setCredentials } from "@/reduxConfig/slice/authSlice"
 import { LoaderCircle } from "lucide-react"
 
 const page = () => {
