@@ -16,6 +16,6 @@ export const RootApiService = createApi({
             return headers
         }
     }),
-    tagTypes: ["Chat", "Auth", "Login", "History"],
+    tagTypes: ["Chat", "Auth", "Login", "History", "Project", "Constraints"],
     endpoints: (build) => ({}),
 })
