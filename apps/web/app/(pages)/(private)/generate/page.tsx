@@ -4,7 +4,7 @@ import { TypingIndicator } from "@/@core/typeIndicator"
 import { useChatMutation } from "@/reduxConfig/service/chatService"
 import { useDeleteHistoryMutation, useGetHistoryQuery, useGetMessagesMutation } from "@/reduxConfig/service/historyService"
 import { useCreateProjectMutation, useDeleteProjectMutation, useGetProjectQuery, useUpdateProjectMutation } from "@/reduxConfig/service/projectService"
-import { useGetConstraintsQuery,Constraint } from "@/reduxConfig/service/constraintsService"
+import { useGetConstraintsQuery, Constraint } from "@/reduxConfig/service/constraintsService"
 
 import { useFormik } from "formik"
 import {
@@ -522,7 +522,7 @@ const Page = () => {
     return (
       <div className="bg-[#0a0a0a] h-screen grid grid-cols-12">
         {/* Left Panel */}
-        <div className="col-span-2 border-[#1a1a1a] border-r h-full flex flex-col bg-[#0d0d0d]">
+        <div className="col-span-2 border-[#1a1a1a] border-r max-h-screen flex flex-col bg-[#0d0d0d]">
           <div className="h-14 border-b border-[#1a1a1a] flex items-center px-3">
             <div className="flex items-center gap-2">
               <div className="h-7 w-7 rounded-lg bg-[#00e57a]/15 flex items-center justify-center">
@@ -558,7 +558,7 @@ const Page = () => {
         </div>
 
         {/* Center — Chat */}
-        <div className="col-span-8 h-full flex flex-col bg-[#0a0a0a]">
+        <div className="col-span-8 max-h-screen flex flex-col bg-[#0a0a0a]">
           {/* Chat Header */}
           <div className="border-b border-[#1a1a1a] h-14 flex items-center justify-between px-6 bg-[#0d0d0d]">
             <div className="flex items-center gap-3">
@@ -694,7 +694,7 @@ const Page = () => {
         </div>
 
         {/* Right Panel — Projects */}
-        <div className="col-span-2 border-[#1a1a1a] border-l h-full flex flex-col bg-[#0d0d0d]">
+        <div className="col-span-2 border-[#1a1a1a] border-l max-h-screen flex flex-col bg-[#0d0d0d]">
           <div className="border-[#1a1a1a] border-b h-14 flex items-center px-3">
             <p className="text-[#929294] text-xs font-medium">Projects</p>
           </div>

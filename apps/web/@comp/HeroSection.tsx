@@ -36,7 +36,47 @@ export const HeroSection = () => {
   return (
     <section className="relative min-h-screen overflow-hidden py-20 flex flex-col justify-center">
       {/* Particle background */}
-      <ParticleField />
+      <motion.div
+        className="absolute inset-0 opacity-30"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgba(0,255,170,0.2) 0%, transparent 70%)",
+        }}
+        animate={{
+          scale: [1, 1.1, 1],
+          rotate: [0, 5, 0],
+        }}
+        transition={{
+          duration: 15,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Horizontal moving particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 rounded-full"
+            style={{
+              backgroundColor: "rgba(0,255,170,0.3)",
+              top: `${Math.random() * 100}%`,
+              left: "-5%",
+            }}
+            animate={{
+              x: ["0vw", "110vw"],
+              opacity: [0, 1, 1, 0],
+            }}
+            transition={{
+              duration: 10 + Math.random() * 5,
+              delay: Math.random() * 5,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          />
+        ))}
+      </div>
 
       <motion.div
         variants={containerVariants}
@@ -66,13 +106,12 @@ export const HeroSection = () => {
             variants={itemVariants}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            <CTAButton onClick={()=>{route.push("/generate")}} className="neon-glow-box">
+            <CTAButton onClick={() => { route.push("/generate") }}>
               Generate Prompt
             </CTAButton>
 
             <CTAButton
               variant="secondary"
-              className="border border-[#1f2e28] text-[#ecfdf5] hover:border-[#00ffaa]"
             >
               See How It Works
             </CTAButton>
@@ -82,7 +121,7 @@ export const HeroSection = () => {
         {/* Demo section */}
         <motion.div
           variants={itemVariants}
-          className="relative glass-card glass-card-hover"
+          className="relative"
         >
           <PromptDemo />
         </motion.div>

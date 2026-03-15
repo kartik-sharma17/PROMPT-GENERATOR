@@ -104,7 +104,7 @@ export const PromptDemo = () => {
             }}
           >
             <motion.div
-              className="glass-card px-3 py-1.5 text-sm font-medium text-foreground/80"
+              className="glass-card px-3 py-1.5 text-sm font-medium text-theme-foreground/80"
               style={{
                 transform: `translateX(${160 + index * 20}px)`,
               }}
@@ -147,15 +147,15 @@ export const PromptDemo = () => {
           {/* Input section */}
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-2 h-2 rounded-full bg-primary/50" />
-              <span className="text-sm text-muted-foreground">Your prompt</span>
+              <div className="w-2 h-2 rounded-full bg-(--theme-primary-raw)/50" />
+              <span className="text-sm text-(--theme-primary-raw)">Your prompt</span>
             </div>
-            <div className="bg-secondary/30 rounded-xl p-4 min-h-[60px] font-mono text-foreground/80">
+            <div className="bg-secondary/30 rounded-xl p-4 min-h-[60px] font-mono text-theme-foreground/80">
               {displayedInput}
               <motion.span
                 animate={{ opacity: [1, 0, 1] }}
                 transition={{ duration: 0.8, repeat: Infinity }}
-                className="inline-block w-0.5 h-5 bg-primary ml-1 align-middle"
+                className="inline-block w-0.5 h-5 bg-theme-primary ml-1 align-middle"
               />
             </div>
           </div>
@@ -171,9 +171,9 @@ export const PromptDemo = () => {
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               >
-                <Sparkles className="w-5 h-5 text-primary" />
+                <Sparkles className="w-5 h-5 text-theme-primary" />
               </motion.div>
-              <span className="text-primary font-medium">Optimizing...</span>
+              <span className="text-theme-primary font-medium">Optimizing...</span>
             </motion.div>
           )}
 
@@ -184,7 +184,7 @@ export const PromptDemo = () => {
               animate={{ opacity: 1, scaleX: 1 }}
               className="flex justify-center my-4"
             >
-              <ArrowRight className="w-6 h-6 text-primary" />
+              <ArrowRight className="w-6 h-6 text-theme-primary" />
             </motion.div>
           )}
 
@@ -197,13 +197,13 @@ export const PromptDemo = () => {
             >
               <div className="flex items-center gap-2 mb-3">
                 <motion.div 
-                  className="w-2 h-2 rounded-full bg-primary"
+                  className="w-2 h-2 rounded-full bg-theme-primary"
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{ duration: 1, repeat: Infinity }}
                 />
-                <span className="text-sm text-primary font-medium">Optimized prompt</span>
+                <span className="text-sm text-theme-primary font-medium">Optimized prompt</span>
               </div>
-              <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 min-h-[80px] font-mono text-foreground">
+              <div className="bg-theme-primary/10 border border-theme-primary/20 rounded-xl p-4 min-h-[80px] font-mono text-theme-foreground">
                 {displayedOutput}
               </div>
             </motion.div>
