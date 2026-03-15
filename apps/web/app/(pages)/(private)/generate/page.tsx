@@ -942,10 +942,10 @@ const Page = () => {
 
             <div className="overflow-y-auto flex-1 p-3 flex flex-col gap-1">
               {histories.map((item) => (
-                <button
+                <div
                   key={item.historyId}
                   onClick={() => { setShowAllHistoryModal(false); handleHistoryClick(item.historyId) }}
-                  className="group flex items-center justify-between gap-3 w-full text-left p-3 rounded-lg hover:bg-[#111] transition-colors"
+                  className="group flex items-center justify-between gap-3 w-full text-left p-3 rounded-lg hover:bg-[#111] transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <MessageSquareMore className="h-3.5 w-3.5 text-[#444] shrink-0" />
@@ -957,6 +957,7 @@ const Page = () => {
                   <div className="flex items-center gap-1 shrink-0">
                     <button
                       onClick={(e) => {
+                        e.stopPropagation()
                         handleDeleteHistory(e, item.historyId)
                         if (histories.length <= 1) setShowAllHistoryModal(false)
                       }}
@@ -966,7 +967,7 @@ const Page = () => {
                     </button>
                     <ChevronRight className="h-3.5 w-3.5 text-[#444] group-hover:text-[#929294] transition-colors" />
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </div>
