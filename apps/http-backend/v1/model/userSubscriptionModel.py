@@ -8,8 +8,8 @@ class SubscriptionModel(BaseModel):
     userId: str
     planId: str
     status: str = "active"
-    startDate: datetime = Field(default_factory=datetime.utcnow)
-    endDate: Optional[datetime] = None
+    startDate: str = Field(default_factory=datetime.utcnow().date().isoformat())
+    endDate: str = None
     createdAt: datetime = Field(default_factory=datetime.utcnow)
     updatedAt: datetime = Field(default_factory=datetime.utcnow)
 

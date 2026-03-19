@@ -6,7 +6,8 @@ from datetime import datetime, date
 class UsageModel(BaseModel):
     id: Optional[str] = Field(default=None, alias="_id")
     userId: str
-    date: date
+    planId: str
+    date: str
     promptCount: int = 0
     createdAt: datetime = Field(default_factory=datetime.utcnow)
     updatedAt: datetime = Field(default_factory=datetime.utcnow)
