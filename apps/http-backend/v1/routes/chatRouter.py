@@ -3,13 +3,15 @@ from v1.services.aiAgent.core import chatWithAgent
 from v1.services.historyService import getHistory, deletehistory, getMessages
 from v1.dependency.historyDependency import manageHistory
 from v1.dependency.getCurrentUser import getCurrentUser
+from v1.dependency.subscriptionDependency import subscriptionCheck
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 # for agent
 @router.post("")
-async def chat(history: dict = Depends(manageHistory)):
+async def chat(history: dict = Depends(manageHistory),
+               _:bool = Depends(subscriptionCheck)):
     return await chatWithAgent(history)
 
 

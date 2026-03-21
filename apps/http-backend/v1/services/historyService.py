@@ -91,6 +91,12 @@ async def getHistory(current_user):
                 title=history.get("title"),
                 historyId=str(history.get("_id")),
                 updatedAt=history.get("updated_at").isoformat(),
+                projectId=(
+                    str(history.get("projectId")) if history.get("projectId") else None
+                ),
+                constraints=(
+                    history.get("constraints") if history.get("constraints") else None
+                ),
             )
             historyResponse.append(create.dict())
 
