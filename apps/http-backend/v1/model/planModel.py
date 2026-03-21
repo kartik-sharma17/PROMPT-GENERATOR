@@ -6,4 +6,5 @@ class planModel(BaseModel):
     id: Optional[str] = None 
     name: str
     price: int
+    duration: int # in months
     dailyLimit: int

@@ -2,6 +2,10 @@ from v1.db.ConnectDB import getDB
 from datetime import datetime
 from bson import ObjectId
 from fastapi import HTTPException
+from v1.model.userSubscriptionModel import SubscriptionModel
+from dateutil.relativedelta import relativedelta
+from v1.utils.response import response
+from v1.payment.paymentService import setupOrder
 
 
 async def getUserSubscription(userId: str):
@@ -12,14 +16,11 @@ async def getUserSubscription(userId: str):
         )
 
         if subscription is None:
-            raise HTTPException(
-                status_code=401,
-                detail={
-                    "status": False,
-                    "message": "No Subscription found for user",
-                    "data": None,
-                },
-            )
+            return {
+                "status": False,
+                "message": "Subscription not found",
+                "subscription": None,
+            }
 
         return {
             "status": True,
@@ -31,9 +32,11 @@ async def getUserSubscription(userId: str):
     except Exception as e:
         raise HTTPException(
             status_code=403,
-            status=False,
-            message="Something Went wront while fetching the subscription",
-            data=None,
+            detail={
+                "status": False,
+                "message": "Something Went wront while fetching the subscription",
+                "data": None,
+            },
         )
 
 
@@ -129,6 +132,160 @@ async def incrementUsage(userId: str):
             detail={
                 "status": False,
                 "message": "Something went wrong, please try again",
+                "data": None,
+            },
+        )
+
+
+async def subscribe(current_user, planId: str):
+    try:
+        db = getDB()
+
+        userId = current_user.get("data").get("userId")
+
+        if not planId:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "status": False,
+                    "message": "PlanId not found, please try again",
+                    "data": None,
+                },
+            )
+
+        plan = await db["planModel"].find_one({"_id": ObjectId(planId)})
+
+        if not plan:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "status": False,
+                    "message": "Plan not found, please try again",
+                    "data": None,
+                },
+            )
+
+        if plan["price"] != 0:
+            existing = await getUserSubscription(userId)
+            newPlanAmount = plan.get("price")
+
+            if existing["status"]:
+                # upgrate case have to find the amount
+                subscription = existing["subscription"]
+                currentPlanId = subscription.get("planId")
+                currentPlan = await db["planModel"].find_one(
+                    {"_id": ObjectId(currentPlanId)}
+                )
+                currentPlanAmount = currentPlan.get("price")
+                currentPlanDuration = currentPlan.get("duration")
+                currentPlanEndDate = datetime.fromisoformat(subscription.get("endDate"))
+                perDayAmount = currentPlanAmount / (
+                    (currentPlanDuration * 30) if (currentPlanDuration * 30) != 0 else 1
+                )
+                leftDays = max(0, (currentPlanEndDate - datetime.utcnow()).days)
+                finalPrice = max(0, int(newPlanAmount - (leftDays * perDayAmount)))
+
+                order = await setupOrder(userId, planId, updatedPrice=finalPrice)
+                return response(code=200, status=True, data=order)
+
+            else:
+                # normal case
+                order = await setupOrder(userId, planId)
+                return response(code=200, status=True, data=order)
+
+        else:
+            return await createSubscription(userId, planId, plan)
+
+    except Exception as e:
+        print(f"something went wrong: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": False,
+                "message": "Something went wrong while subscription, please try again",
+                "data": None,
+            },
+        )
+
+
+async def createSubscription(userId, planId, plan):
+    try:
+        db = getDB()
+
+        existing = await getUserSubscription(userId)
+
+        duration = plan.get("duration")
+        start_date = datetime.utcnow()
+        expiry_date = start_date + relativedelta(months=duration)
+
+        if existing["status"]:
+            subscription = existing["subscription"]
+            existingPlan = await db["planModel"].find_one(
+                {"_id": ObjectId(subscription.get("planId"))}
+            )
+
+            if subscription.get("planId") == planId:
+                raise HTTPException(
+                    status_code=404,
+                    detail={
+                        "status": False,
+                        "message": "Already Subscribe to this plan, please choose another plan to upgrade",
+                        "data": None,
+                    },
+                )
+
+            if existingPlan.get("price") > plan.get("price"):
+                raise HTTPException(
+                    status_code=500,
+                    detail={
+                        "status": False,
+                        "message": "degrade plan is not allowed, free plan will be automatically activated one paid plan period is over",
+                        "data": None,
+                    },
+                )
+
+            await db["SubscriptionModel"].update_one(
+                {"userId": userId},
+                {
+                    "$set": {
+                        "planId": planId,
+                        "status": "active",
+                        "startDate": datetime.utcnow().isoformat(),
+                        "endDate": expiry_date.isoformat(),
+                        "updatedAt": datetime.utcnow().isoformat(),
+                    }
+                },
+                upsert=True,
+            )
+
+            return response(
+                message="Congratulation, your plan is upgarded now",
+                code=200,
+                status=True,
+            )
+
+        newSubscription = SubscriptionModel(
+            userId=userId,
+            planId=plan.get("_id"),
+            status="active",
+            endDate=expiry_date.isoformat(),
+        )
+
+        await db["SubscriptionModel"].insert_one(newSubscription.dict())
+
+        return response(
+            message="Congratulation, your plan is active now",
+            code=201,
+            status=True,
+        )
+
+    except Exception as e:
+        print(f"Order Error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": False,
+                "message": "Something went wrong while subscription, please try again",
                 "data": None,
             },
         )
