@@ -30,7 +30,7 @@ async def getUserSubscription(userId: str):
         raise
     except Exception as e:
         raise HTTPException(
-            status_code=404,
+            status_code=403,
             status=False,
             message="Something Went wront while fetching the subscription",
             data=None,
@@ -89,7 +89,7 @@ async def checkUsage(userId: str):
             return {"status": True, "message": "Prompt Available"}
         else:
             raise HTTPException(
-                status_code=404,
+                status_code=403,
                 detail={
                     "status": False,
                     "message": "Limit Reached, please upgrade your plan",
@@ -101,7 +101,7 @@ async def checkUsage(userId: str):
         raise
     except Exception as e:
         raise HTTPException(
-            status_code=404,
+            status_code=500,
             detail={
                 "status": False,
                 "message": "Something went wrong while checking the usage",
@@ -124,4 +124,11 @@ async def incrementUsage(userId: str):
         return {"status": True, "message": "usage updated successfully"}
 
     except Exception as e:
-        return {"status": False, "message": "Something went wrong while updating usage"}
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": False,
+                "message": "Something went wrong, please try again",
+                "data": None,
+            },
+        )

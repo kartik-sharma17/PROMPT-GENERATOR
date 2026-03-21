@@ -5,6 +5,7 @@ from v1.db.ConnectDB import getDB
 from v1.model import messageModel
 from datetime import datetime
 from bson import ObjectId
+from v1.services.subscriptionService import incrementUsage
 
 
 async def chatWithAgent(history: dict):
@@ -138,6 +139,8 @@ async def chatWithAgent(history: dict):
                     """
 
                     chat_messages.append(SystemMessage(content=constraintsPrompt))
+
+                incrementUsage(userId)
 
             messages.reverse()
 
