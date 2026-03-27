@@ -100,7 +100,7 @@ async def createPaymentOrder(userId: str, amount: int, planId: str):
         {
             "amount": paisaAmount,
             "currency": "INR",
-            "receipt": f"user_{userId}_{datetime.utcnow().timestamp()}",
+            "receipt": f"user_{userId}_{int(datetime.utcnow().timestamp())}",
             "notes": {"userId": userId, "planId": planId},
         }
     )
@@ -109,6 +109,7 @@ async def createPaymentOrder(userId: str, amount: int, planId: str):
 
 
 def verifyPayment(order_id, payment_id, signature):
+
     import hmac
     import hashlib
 

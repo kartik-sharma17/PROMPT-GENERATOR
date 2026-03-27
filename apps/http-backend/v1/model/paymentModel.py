@@ -8,12 +8,12 @@ class PaymentModel(BaseModel):
     userId: str
     planId: str
     orderId: str               # Razorpay order_id
-    paymentId: Optional[str]   # Razorpay payment_id (after success)
-    signature: Optional[str]   # Razorpay signature
+    paymentId: Optional[str] = None   # Razorpay payment_id (after success)
+    signature: Optional[str] = None  # Razorpay signature
     amount: int                # in INR (not paise)
-    razorpayResponse: Optional[dict]
+    razorpayResponse: Optional[dict] = None
     currency: str = "INR"
-    status: str = "created"    # created | success | failed
+    status: str = "created"    # created | success | failed 
     method: Optional[str] = None   # card, upi, netbanking (future use)
     createdAt: datetime = Field(default_factory=datetime.utcnow)
     updatedAt: datetime = Field(default_factory=datetime.utcnow)

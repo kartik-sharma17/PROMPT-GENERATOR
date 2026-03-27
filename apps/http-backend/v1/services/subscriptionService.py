@@ -6,6 +6,8 @@ from v1.model.userSubscriptionModel import SubscriptionModel
 from dateutil.relativedelta import relativedelta
 from v1.utils.response import response
 from v1.payment.paymentService import setupOrder
+from v1.payment import paymentService
+from v1.schema import verifyPaymentSchema
 
 
 async def getUserSubscription(userId: str):
@@ -266,9 +268,10 @@ async def createSubscription(userId, planId, plan):
 
         newSubscription = SubscriptionModel(
             userId=userId,
-            planId=plan.get("_id"),
+            planId=str(plan.get("_id")),
             status="active",
             endDate=expiry_date.isoformat(),
+            startDate=datetime.utcnow().isoformat(),
         )
 
         await db["SubscriptionModel"].insert_one(newSubscription.dict())
@@ -278,6 +281,87 @@ async def createSubscription(userId, planId, plan):
             code=201,
             status=True,
         )
+
+    except Exception as e:
+        print(f"Order Error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": False,
+                "message": "Something went wrong while subscription, please try again",
+                "data": None,
+            },
+        )
+
+
+async def verifyPaymentAndSubscribe(data: verifyPaymentSchema, current_user):
+    try:
+        db = getDB()
+
+        userId = current_user.get("data").get("userId")
+
+        payment = await db["PaymentModel"].find_one(
+            {"userId": userId, "orderId": data.order_id}
+        )
+
+        if payment is None:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "status": False,
+                    "message": "Something went wrong, Transaction not found, please contact the support team in case amount is deducted from your account",
+                    "data": None,
+                },
+            )
+
+        if data.razorpayResponse:
+            await db["PaymentModel"].update_one(
+                {"userId": userId, "orderId": data.order_id},
+                {"$set": {"razorpayResponse": data.razorpayResponse}},
+            )
+
+        if payment.get("status") == "success":
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "status": False,
+                    "message": "Payment already verified",
+                    "data": None,
+                },
+            )
+
+        if not paymentService.verifyPayment(
+            data.order_id, data.payment_id, data.signature
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "status": False,
+                    "message": "Something went wrong, payment is not verified, please contact the support team in case amount is deducted from your account",
+                    "data": None,
+                },
+            )
+
+        planId = payment.get("planId")
+
+        plan = await db["planModel"].find_one({"_id": ObjectId(planId)})
+
+        if not plan:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "status": False,
+                    "message": "Plan not found, please try again",
+                    "data": None,
+                },
+            )
+
+        await db["PaymentModel"].update_one(
+            {"orderId": data.order_id},
+            {"$set": {"paymentId": data.payment_id, "status": "success"}},
+        )
+
+        return await createSubscription(userId, planId, plan)
 
     except Exception as e:
         print(f"Order Error: {e}")

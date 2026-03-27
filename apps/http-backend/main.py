@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from v1.db.ConnectDB import connectDB
-from v1.routes import projectRouter, authRouter, chatRouter, constrainstRouter
+from v1.routes import projectRouter, authRouter, chatRouter, constrainstRouter, subscriptionRouter
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -13,6 +13,10 @@ app.include_router(
 )
 app.include_router(
     authRouter.router,
+    prefix="/v1"
+)
+app.include_router(
+    subscriptionRouter.router,
     prefix="/v1"
 )
 app.include_router(
