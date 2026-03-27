@@ -74,7 +74,7 @@ async def setupOrder(userId: str, planId: str, updatedPrice: Optional[int] = Non
             updatedAt=datetime.utcnow(),
         )
 
-        await db["payments"].insert_one(payment.dict(by_alias=True))
+        await db["PaymentModel"].insert_one(payment.dict(by_alias=True,exclude={"id"}))
 
         return order
 

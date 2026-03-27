@@ -192,6 +192,7 @@ async def subscribe(current_user, planId: str):
 
             else:
                 # normal case
+                print("this is running")
                 order = await setupOrder(userId, planId)
                 return response(code=200, status=True, data=order)
 
@@ -301,7 +302,7 @@ async def verifyPaymentAndSubscribe(data: verifyPaymentSchema, current_user):
         userId = current_user.get("data").get("userId")
 
         payment = await db["PaymentModel"].find_one(
-            {"userId": userId, "orderId": data.order_id}
+            {"userId": userId, "orderId": (data.razorpay_order_id).strip()}
         )
 
         if payment is None:
@@ -316,7 +317,7 @@ async def verifyPaymentAndSubscribe(data: verifyPaymentSchema, current_user):
 
         if data.razorpayResponse:
             await db["PaymentModel"].update_one(
-                {"userId": userId, "orderId": data.order_id},
+                {"userId": userId, "orderId": data.razorpay_order_id},
                 {"$set": {"razorpayResponse": data.razorpayResponse}},
             )
 
@@ -331,7 +332,7 @@ async def verifyPaymentAndSubscribe(data: verifyPaymentSchema, current_user):
             )
 
         if not paymentService.verifyPayment(
-            data.order_id, data.payment_id, data.signature
+            data.razorpay_order_id, data.razorpay_payment_id, data.razorpay_signature
         ):
             raise HTTPException(
                 status_code=400,
@@ -357,8 +358,8 @@ async def verifyPaymentAndSubscribe(data: verifyPaymentSchema, current_user):
             )
 
         await db["PaymentModel"].update_one(
-            {"orderId": data.order_id},
-            {"$set": {"paymentId": data.payment_id, "status": "success"}},
+            {"orderId": data.razorpay_order_id},
+            {"$set": {"paymentId": data.razorpay_payment_id, "status": "success"}},
         )
 
         return await createSubscription(userId, planId, plan)

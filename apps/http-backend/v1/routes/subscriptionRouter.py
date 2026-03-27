@@ -8,9 +8,9 @@ router = APIRouter(prefix="/subscribe", tags=["subscribe"])
 
 
 @router.get("")
-async def subscribeRouter(planId: str, currentUser: dict = Depends(getCurrentUser)):
-    return await subscribe(currentUser, planId)
+async def subscribeRouter(planId: str, current_user: dict = Depends(getCurrentUser)):
+    return await subscribe(current_user, planId)
 
-@router.get("/verify-payment")
+@router.post("/verify-payment")
 async def verifyPaymentRouter(data: verifyPaymentSchema, currentUser: dict = Depends(getCurrentUser)):
-    return await verifyPaymentAndSubscribe(currentUser, planId)
+    return await verifyPaymentAndSubscribe(data,currentUser)
