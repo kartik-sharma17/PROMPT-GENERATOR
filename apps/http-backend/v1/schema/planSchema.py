@@ -1,8 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel
 
-
-class planModel(BaseModel):
+class getPlanSchema(BaseModel):
     id: Optional[str] = None 
     name: str
     price: int

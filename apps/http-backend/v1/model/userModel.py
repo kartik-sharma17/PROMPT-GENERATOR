@@ -12,7 +12,7 @@ class User(BaseModel):
     password: str
     role: str
     avatar: Optional[str] = None
-    phone: Optional[str]
+    phone: Optional[str] = None
     is_active: bool = True
     is_verified: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)

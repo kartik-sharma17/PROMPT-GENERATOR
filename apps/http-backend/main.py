@@ -1,28 +1,25 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from v1.db.ConnectDB import connectDB
-from v1.routes import projectRouter, authRouter, chatRouter, constrainstRouter
+from v1.routes import (
+    projectRouter,
+    authRouter,
+    chatRouter,
+    constrainstRouter,
+    subscriptionRouter,
+    planRouter,
+)
 from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
 
-app.include_router(
-    projectRouter.router,
-    prefix="/v1"
-)
-app.include_router(
-    authRouter.router,
-    prefix="/v1"
-)
-app.include_router(
-    chatRouter.router,
-    prefix="/v1"
-)
-app.include_router(
-    constrainstRouter.router,
-    prefix="/v1"
-)
+app.include_router(projectRouter.router, prefix="/v1")
+app.include_router(authRouter.router, prefix="/v1")
+app.include_router(planRouter.router, prefix="/v1")
+app.include_router(subscriptionRouter.router, prefix="/v1")
+app.include_router(chatRouter.router, prefix="/v1")
+app.include_router(constrainstRouter.router, prefix="/v1")
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,9 +31,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.on_event("startup")
 async def startup_event():
     await connectDB()
+
 
 @app.get("/")
 async def welcome():

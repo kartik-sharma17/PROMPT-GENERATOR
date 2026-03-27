@@ -19,7 +19,7 @@ export const AuthApiSlice = RootApiService.injectEndpoints({
             invalidatesTags: ["Auth"]
         }),
         verifyAccount: builder.query({
-            query: (token) => `/verify-email/${token}`,
+            query: (token) => `auth/verify-email/${token}`,
             providesTags: ["Login"]
         })
     })
