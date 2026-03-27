@@ -179,6 +179,28 @@ async def subscribe(current_user, planId: str):
                     {"_id": ObjectId(currentPlanId)}
                 )
                 currentPlanAmount = currentPlan.get("price")
+
+                if currentPlanId == planId:
+                    raise HTTPException(
+                        status_code=400,
+                        detail={
+                            "status": False,
+                            "message": "you have already subscribed to this plan, please choose another plan to upgrade",
+                            "data": None,
+                        },
+                    )
+
+                # Checking user is not downgrading as downgrading is not allowed
+                if newPlanAmount < currentPlanAmount:
+                    raise HTTPException(
+                        status_code=400,
+                        detail={
+                            "status": False,
+                            "message": "You can't downGrade your, plan will automatically downgrade to trail once expired",
+                            "data": None,
+                        },
+                    )
+
                 currentPlanDuration = currentPlan.get("duration")
                 currentPlanEndDate = datetime.fromisoformat(subscription.get("endDate"))
                 perDayAmount = currentPlanAmount / (
@@ -198,7 +220,9 @@ async def subscribe(current_user, planId: str):
 
         else:
             return await createSubscription(userId, planId, plan)
-
+        
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"something went wrong: {e}")
         raise HTTPException(
@@ -282,7 +306,8 @@ async def createSubscription(userId, planId, plan):
             code=201,
             status=True,
         )
-
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Order Error: {e}")
         raise HTTPException(
@@ -363,7 +388,8 @@ async def verifyPaymentAndSubscribe(data: verifyPaymentSchema, current_user):
         )
 
         return await createSubscription(userId, planId, plan)
-
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Order Error: {e}")
         raise HTTPException(
