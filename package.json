@@ -7,7 +7,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "start": "cd apps/http-backend && source venv/bin/activate && uvicorn main:app --reload"
+    "start": "cd apps/http-backend && source venv/bin/activate && uvicorn main:app --reload",
+    "prod-start": "cd apps/http-backend && python -m venv venv && venv/scripts/activate && pip install -r requirements.txt && uvicorn main:app --reload"
   },
   "devDependencies": {
     "prettier": "^3.6.2",
