@@ -24,13 +24,23 @@ async def getUserSubscription(userId: str):
                 "subscription": None,
             }
 
+        plan = await db["planModel"].find_one(
+            {"_id": ObjectId(subscription.get("planId"))}
+        )
+
+        subscription = {
+            **subscription,
+            "planName": plan.get("name") if plan.get("name") else None,
+            "planPrice": plan.get("price")if plan.get("price") else None,
+            "planDuration": plan.get("duration")if plan.get("duration") else None,
+            "plandailyLimit": plan.get("dailyLimit")if plan.get("dailyLimit") else None,
+        }
+
         return {
             "status": True,
             "message": "Subscription retrieved successfully",
             "subscription": subscription,
         }
-    except HTTPException:
-        raise
     except Exception as e:
         raise HTTPException(
             status_code=403,
@@ -220,7 +230,7 @@ async def subscribe(current_user, planId: str):
 
         else:
             return await createSubscription(userId, planId, plan)
-        
+
     except HTTPException:
         raise
     except Exception as e:

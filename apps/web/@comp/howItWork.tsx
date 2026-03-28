@@ -40,7 +40,7 @@ function StepCard({ step, index }: { step: Step; index: number }) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           setTimeout(() => setIsVisible(true), index * 150)
         }
       },

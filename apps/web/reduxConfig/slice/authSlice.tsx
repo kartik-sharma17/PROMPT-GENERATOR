@@ -1,16 +1,39 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { boolean } from "zod";
+
+interface SubscriptionDetailsType {
+    planId?: string;
+    planName?: string;
+    planPrice: number;
+    planDuration: number;
+    planDailyLimit: number;
+    startDate: string;
+    endDate: string;
+    isActive: boolean;
+}
+
+interface AuthState {
+    user: any;
+    token: string | null;
+    isAuthenticated: boolean;
+    subscriptionDetails: SubscriptionDetailsType | null;
+}
+
+const initialState: AuthState = {
+    user: {},
+    token: null,
+    isAuthenticated: false,
+    subscriptionDetails: null,
+};
 
 const AuthSlice = createSlice({
     name: "auth",
-    initialState: {
-        user: {},
-        token: null,
-        isAuthenticated: false
-    },
+    initialState,
     reducers: {
         setCredentials: (state, action) => {
             state.user = action.payload.user
             state.token = action.payload.token
+            state.subscriptionDetails = action.payload.subscriptionDetails
             state.isAuthenticated = true
         },
         logout: (state) => {
