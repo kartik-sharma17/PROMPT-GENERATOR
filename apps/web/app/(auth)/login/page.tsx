@@ -13,6 +13,7 @@ import { useDispatch } from "react-redux"
 import { toast } from "sonner"
 import { toFormikValidationSchema } from "zod-formik-adapter"
 import { motion } from "framer-motion";
+import Cookies from "js-cookie"
 
 const initialValues = {
   email: "",
@@ -35,6 +36,10 @@ const page = () => {
           user: response?.data,
           token: response?.data?.token
         }))
+        Cookies.set("token", response?.data?.token, {
+          expires: 7,
+          path: "/",
+        });
         setTimeout(() => {
           navigate.replace("/")
         }, 3000)

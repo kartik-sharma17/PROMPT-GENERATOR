@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { boolean } from "zod";
 
 interface SubscriptionDetailsType {
     planId?: string;
@@ -39,6 +38,7 @@ const AuthSlice = createSlice({
         logout: (state) => {
             state.user = {}
             state.token = null
+            state.subscriptionDetails = null
             state.isAuthenticated = false
         }
     }
