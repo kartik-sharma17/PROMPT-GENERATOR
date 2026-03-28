@@ -1,332 +1,492 @@
-"use client"
+"use client";
 
-import { useGetPlansQuery, useSubscribeMutation, useVerifyPaymentMutation } from "@/reduxConfig/service/subscriptionService"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-import { LoaderCircle, Zap, Check, Crown, Sparkles } from "lucide-react"
 import { motion } from "framer-motion";
-import { loadRazorpay } from "@/lib/loadRazorpay"
+import { useState } from "react";
+import {
+    Check,
+    Sparkles,
+    Loader2,
+    AlertCircle,
+    Zap,
+    ArrowLeft,
+    CreditCard,
+} from "lucide-react";
+import {
+    useGetPlansQuery,
+    useSubscribeMutation,
+    useVerifyPaymentMutation,
+} from "@/reduxConfig/service/subscriptionService";
+import { useDispatch, useSelector } from "react-redux";
+import { setCredentials } from "@/reduxConfig/slice/authSlice";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import Link from "next/link";
 
-
-/* ── Plan icon based on index ── */
-const planIcons = [Zap, Sparkles, Crown]
-
-/* ── Plan card ── */
-function PlanCard({
-    plan,
-    index,
-    isLoading,
-    onChoose,
-}: {
-    plan: { id: string; name: string; price: number; duration: number; dailyLimit: number }
-    index: number
-    isLoading: boolean
-    onChoose: (id: string) => void
-}) {
-    const Icon = planIcons[index % planIcons.length]
-    const isPopular = index === 1
-    const isFree = plan.price === 0
-
-    return (
-        <div
-            className="relative flex flex-col rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1"
-            style={{
-                background: isPopular
-                    ? "linear-gradient(135deg, rgba(52,211,153,0.12), rgba(34,211,238,0.08))"
-                    : "rgba(28,29,33,0.75)",
-                border: isPopular
-                    ? "1px solid rgba(99,247,168,0.35)"
-                    : "1px solid rgba(99,247,168,0.1)",
-                backdropFilter: "blur(18px)",
-                boxShadow: isPopular
-                    ? "0 0 40px rgba(99,247,168,0.1), 0 8px 32px rgba(0,0,0,0.4)"
-                    : "0 8px 32px rgba(0,0,0,0.3)",
-            }}
-        >
-            {/* Popular badge */}
-            {isPopular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase text-black"
-                        style={{ background: "linear-gradient(to right, #34d399, #22d3ee)" }}
-                    >
-                        <Crown size={10} /> Most Popular
-                    </span>
-                </div>
-            )}
-
-            {/* Icon + Name */}
-            <div className="flex items-center gap-3 mb-4 mt-2">
-                <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{
-                        background: "rgba(99,247,168,0.1)",
-                        border: "1px solid rgba(99,247,168,0.2)",
-                    }}
-                >
-                    <Icon size={18} style={{ color: "#63f7a8" }} />
-                </div>
-                <h3 className="text-white font-bold text-lg">{plan.name}</h3>
-            </div>
-
-            {/* Price */}
-            <div className="mb-5">
-                {isFree ? (
-                    <p
-                        className="text-5xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-500 bg-clip-text text-transparent"
-                    >
-                        Free
-                    </p>
-                ) : (
-                    <div className="flex items-end gap-1">
-                        <span className="text-[#929294] text-lg font-medium">₹</span>
-                        <p
-                            className="text-5xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-500 bg-clip-text text-transparent"
-                        >
-                            {plan.price}
-                        </p>
-                        <span className="text-[#929294] text-sm mb-1.5">
-                            / {plan.duration} mo
-                        </span>
-                    </div>
-                )}
-            </div>
-
-            {/* Features */}
-            <ul className="flex flex-col gap-2.5 mb-7 flex-1">
-                <li className="flex items-center gap-2.5 text-sm text-gray-300">
-                    <span
-                        className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center"
-                        style={{ background: "rgba(99,247,168,0.15)" }}
-                    >
-                        <Check size={10} style={{ color: "#63f7a8" }} />
-                    </span>
-                    {plan.duration} {plan.duration === 1 ? "month" : "months"} access
-                </li>
-                <li className="flex items-center gap-2.5 text-sm text-gray-300">
-                    <span
-                        className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center"
-                        style={{ background: "rgba(99,247,168,0.15)" }}
-                    >
-                        <Check size={10} style={{ color: "#63f7a8" }} />
-                    </span>
-                    {plan.dailyLimit === -1 ? "Unlimited daily prompts" : `${plan.dailyLimit} prompts / day`}
-                </li>
-                <li className="flex items-center gap-2.5 text-sm text-gray-300">
-                    <span
-                        className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center"
-                        style={{ background: "rgba(99,247,168,0.15)" }}
-                    >
-                        <Check size={10} style={{ color: "#63f7a8" }} />
-                    </span>
-                    All AI model support
-                </li>
-            </ul>
-
-            {/* CTA */}
-            <button
-                disabled={isLoading}
-                onClick={() => onChoose(plan.id)}
-                className="w-full p-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02] active:scale-95 disabled:opacity-60"
-                style={
-                    isPopular
-                        ? {
-                            background: "linear-gradient(to right, #34d399, #22d3ee)",
-                            color: "#000",
-                            boxShadow: "0 0 20px rgba(99,247,168,0.3)",
-                        }
-                        : {
-                            background: "rgba(99,247,168,0.08)",
-                            border: "1px solid rgba(99,247,168,0.2)",
-                            color: "#63f7a8",
-                        }
-                }
-            >
-                {isLoading && <LoaderCircle className="animate-spin w-4 h-4" />}
-                {isFree ? "Get Started Free" : "Choose Plan →"}
-            </button>
-        </div>
-    )
+// ── Types ────────────────────────────────────────────────────────────────────
+interface Plan {
+    id: string;
+    name: string;
+    price: number;
+    duration: number;
+    dailyLimit: number;
 }
 
-const page = () => {
-    const { data: plansData, isLoading: plansLoading, isError } = useGetPlansQuery(undefined)
-    const [subscribeMutation, { isLoading: subscribing }] = useSubscribeMutation()
-    const [verifyPayment, { isLoading: verifyPaymentLoading }] = useVerifyPaymentMutation()
-    const navigate = useRouter()
+// ── Plan metadata per index position ────────────────────────────────────────
+const PLAN_META: Record<
+    number,
+    { description: string; popular: boolean; badge?: string; extraFeatures: string[] }
+> = {
+    0: {
+        description: "Perfect for getting started",
+        popular: false,
+        extraFeatures: ["Email support", "Basic analytics"],
+    },
+    1: {
+        description: "For power users and creators",
+        popular: true,
+        badge: "Best Value",
+        extraFeatures: ["Priority support", "Prompt history", "Team sharing"],
+    },
+    2: {
+        description: "For teams and organizations",
+        popular: false,
+        extraFeatures: ["Priority support", "API access", "SSO integration", "Dedicated support"],
+    },
+};
 
-    const plans: { id: string; name: string; price: number; duration: number; dailyLimit: number }[] =
-        plansData?.data || []
+const buildFeatures = (plan: Plan, index: number): string[] => {
+    const meta = PLAN_META[index] ?? PLAN_META[0];
+    return [
+        `${plan.dailyLimit} prompts per day`,
+        `${plan.duration} month${plan.duration > 1 ? "s" : ""} access`,
+        "Advanced AI optimization",
+        "All AI models",
+        ...meta!.extraFeatures,
+    ];
+};
 
-    const handleChoosePlan = async (planId: string) => {
+// ── Skeleton card ────────────────────────────────────────────────────────────
+const SkeletonCard = () => (
+    <div
+        className="relative rounded-2xl p-8 animate-pulse"
+        style={{
+            background: "rgba(15,27,20,0.7)",
+            border: "1px solid rgba(0,255,170,0.08)",
+            backdropFilter: "blur(16px)",
+        }}
+    >
+        <div className="h-7 w-24 rounded-lg mb-2" style={{ background: "rgba(255,255,255,0.06)" }} />
+        <div className="h-4 w-40 rounded mb-8" style={{ background: "rgba(255,255,255,0.04)" }} />
+        <div className="h-14 w-32 rounded-lg mb-8" style={{ background: "rgba(255,255,255,0.06)" }} />
+        {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex gap-3 mb-4">
+                <div className="w-5 h-5 rounded-full flex-shrink-0" style={{ background: "rgba(0,255,170,0.1)" }} />
+                <div className="h-4 rounded flex-1" style={{ background: "rgba(255,255,255,0.04)" }} />
+            </div>
+        ))}
+        <div className="h-12 rounded-xl mt-8" style={{ background: "rgba(255,255,255,0.06)" }} />
+    </div>
+);
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+const ChoosePlanPage = () => {
+    const dispatch = useDispatch();
+    const router = useRouter();
+    const user = useSelector((state: any) => state.auth.user);
+
+    const { data: plansData, isLoading, isError, refetch } = useGetPlansQuery({});
+    const [subscribe] = useSubscribeMutation();
+    const [verifyPayment] = useVerifyPaymentMutation();
+
+    const [processingPlanId, setProcessingPlanId] = useState<string | null>(null);
+    const [isYearly, setIsYearly] = useState(false);
+
+    const plans: Plan[] = plansData?.data ?? [];
+
+    const getDisplayPrice = (price: number) =>
+        isYearly ? Math.round(price * 12 * 0.8) : price;
+
+    const handleSelectPlan = async (plan: Plan) => {
         try {
-            const loaded = await loadRazorpay();
-            if (!loaded) {
-                alert("Razorpay failed to load.");
+            setProcessingPlanId(plan.id);
+
+            // Step 1: Create Razorpay order
+            const orderRes = await subscribe(plan.id).unwrap();
+
+            if (!orderRes?.data) {
+                toast.error("Failed to create order. Please try again.");
                 return;
             }
-            const response = await subscribeMutation(planId).unwrap()
 
-            // Free plan — subscription activated directly
-            if (!response?.data?.id) {
-                toast.success(response?.message || "Plan activated successfully!")
-                setTimeout(() => navigate.replace("/"), 2000)
-                return
-            }
+            const { order_id, amount, currency, key } = orderRes.data;
 
-            const options = {
-                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
-                amount: response?.data?.amount,
-                currency: "INR",
+            // Step 2: Open Razorpay checkout
+            const razorpay = new (window as any).Razorpay({
+                key: key,
+                amount: amount,
+                currency: currency ?? "INR",
                 name: "Prompter",
-                description: "Subscription Payment",
-                order_id: response?.data?.id,
-                handler: async function (RazorpayResponse: any) {
-                    console.log("this is the response = ", RazorpayResponse)
-                    const payload = {
-                        ...RazorpayResponse,
-                        "razorpayResponse": RazorpayResponse
-                    }
-
+                description: `${plan.name} Plan – ${plan.duration} month(s)`,
+                order_id: order_id,
+                prefill: {
+                    name: user?.name ?? "",
+                    email: user?.email ?? "",
+                },
+                theme: { color: "#00ffaa" },
+                handler: async (response: any) => {
                     try {
-                        const response = await verifyPayment(payload).unwrap();
-                        console.log(response)
-                        toast.success(response?.message || "Your plan is active now")
-                    }
-                    catch (exception: any) {
-                        toast.error(exception?.data?.detail?.message || "Something went wrong, please try again")
+                        // Step 3: Verify payment
+                        const verifyRes = await verifyPayment({
+                            order_id: response.razorpay_order_id,
+                            payment_id: response.razorpay_payment_id,
+                            signature: response.razorpay_signature,
+                            razorpayResponse: response,
+                        }).unwrap();
+
+                        if (verifyRes?.status) {
+                            // Update Redux with new subscription details
+                            if (verifyRes?.data?.subscriptionDetails) {
+                                dispatch(
+                                    setCredentials({
+                                        user: user,
+                                        token: user?.token,
+                                        subscriptionDetails: verifyRes.data.subscriptionDetails,
+                                    })
+                                );
+                            }
+                            toast.success("🎉 Subscription activated successfully!");
+                            router.replace("/my-plan");
+                        } else {
+                            toast.error(verifyRes?.message || "Payment verification failed.");
+                        }
+                    } catch {
+                        toast.error("Payment verification failed. Please contact support.");
                     }
                 },
-                prefill: {
-                    name: "Kartik",
-                    email: "user@gmail.com"
-                }
-            };
+                modal: {
+                    ondismiss: () => {
+                        toast.info("Payment cancelled.");
+                        setProcessingPlanId(null);
+                    },
+                },
+            });
 
-            const rzp = new window.Razorpay(options);
-            rzp.open();
-
-        } catch (exception: any) {
-            console.log("this is a res = ", exception)
-            toast.error(exception?.data?.detail?.message || "Something went wrong, please try again")
+            razorpay.open();
+        } catch (err: any) {
+            toast.error(err?.data?.message ?? "Something went wrong. Please try again.");
+        } finally {
+            setProcessingPlanId(null);
         }
-    }
+    };
+
+    const colsClass =
+        plans.length === 1
+            ? "max-w-sm mx-auto"
+            : plans.length === 2
+                ? "md:grid-cols-2 max-w-3xl mx-auto"
+                : "md:grid-cols-3 max-w-6xl mx-auto";
 
     return (
         <div
-            className="min-h-screen relative flex flex-col items-center py-16 px-4"
-            style={{ background: "var(--sec-bg, #0d0f14)" }}
+            className="min-h-screen relative overflow-x-hidden"
+            style={{ background: "#080e0a" }}
         >
-            {/* Particle canvas */}
-            <motion.div
-                className="absolute inset-0 opacity-30"
+            {/* ── Background effects ──────────────────────────────────────────── */}
+            <div
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] pointer-events-none"
                 style={{
-                    background:
-                        "radial-gradient(ellipse at center, rgba(0,255,170,0.2) 0%, transparent 70%)",
-                }}
-                animate={{
-                    scale: [1, 1.1, 1],
-                    rotate: [0, 5, 0],
-                }}
-                transition={{
-                    duration: 15,
-                    repeat: Infinity,
-                    ease: "easeInOut",
+                    background: "radial-gradient(ellipse at center top, rgba(0,255,170,0.07) 0%, transparent 70%)",
                 }}
             />
-
-            {/* Horizontal moving particles */}
+            {/* Floating particles */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {Array.from({ length: 20 }).map((_, i) => (
+                {Array.from({ length: 18 }).map((_, i) => (
                     <motion.div
                         key={i}
-                        className="absolute w-1 h-1 rounded-full"
+                        className="absolute rounded-full"
                         style={{
-                            backgroundColor: "rgba(0,255,170,0.3)",
+                            width: Math.random() > 0.5 ? 3 : 2,
+                            height: Math.random() > 0.5 ? 3 : 2,
+                            backgroundColor: `rgba(0,255,170,${0.1 + Math.random() * 0.2})`,
                             top: `${Math.random() * 100}%`,
-                            left: "-5%",
+                            left: `${Math.random() * 100}%`,
                         }}
-                        animate={{
-                            x: ["0vw", "110vw"],
-                            opacity: [0, 1, 1, 0],
-                        }}
+                        animate={{ y: [-10, 10, -10], opacity: [0.2, 0.6, 0.2] }}
                         transition={{
-                            duration: 10 + Math.random() * 5,
-                            delay: Math.random() * 5,
+                            duration: 4 + Math.random() * 4,
+                            delay: Math.random() * 3,
                             repeat: Infinity,
-                            ease: "linear",
+                            ease: "easeInOut",
                         }}
                     />
                 ))}
             </div>
 
-            {/* Ambient blobs */}
-            <div
-                className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-[120px] pointer-events-none"
-                style={{ background: "rgba(99,247,168,0.05)", zIndex: 0 }}
-            />
+            <div className="relative z-10 max-w-7xl mx-auto px-4 py-16">
+                {/* ── Back link ──────────────────────────────────────────────────── */}
+                <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="mb-12"
+                >
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 text-sm text-[#7fbfb0] hover:text-[#00ffaa] transition-colors group"
+                    >
+                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        Back to Home
+                    </Link>
+                </motion.div>
 
-            <div className="relative z-10 w-full max-w-5xl flex flex-col items-center">
-                {/* Badge */}
-                <div className="flex justify-center mb-5">
-                    <span
-                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase"
+                {/* ── Header ─────────────────────────────────────────────────────── */}
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="text-center mb-16"
+                >
+                    <div
+                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase mb-6"
                         style={{
-                            background: "rgba(99,247,168,0.08)",
-                            border: "1px solid rgba(99,247,168,0.2)",
-                            color: "#63f7a8"
+                            background: "rgba(0,255,170,0.08)",
+                            border: "1px solid rgba(0,255,170,0.2)",
+                            color: "#00ffaa",
                         }}
                     >
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <CreditCard className="w-3.5 h-3.5" />
                         Choose Your Plan
-                    </span>
-                </div>
-
-                {/* Headline */}
-                <h1 className="text-4xl md:text-5xl font-bold text-center text-white mb-3">
-                    Start with the{" "}
-                    <span className="bg-gradient-to-r from-emerald-400 to-cyan-500 bg-clip-text text-transparent">
-                        right plan
-                    </span>
-                </h1>
-                <p className="text-[#929294] text-center text-base max-w-xl mb-12">
-                    Pick a plan that fits your workflow. Upgrade or downgrade anytime.
-                </p>
-
-                {/* Plans grid */}
-                {plansLoading ? (
-                    <div className="flex flex-col items-center gap-4 mt-10">
-                        <LoaderCircle
-                            className="animate-spin w-10 h-10"
-                            style={{ color: "#63f7a8" }}
-                        />
-                        <p className="text-[#929294] text-sm">Fetching plans...</p>
                     </div>
-                ) : isError ? (
-                    <p className="text-red-400 text-sm mt-10">
-                        Failed to load plans. Please refresh and try again.
+
+                    <h1 className="text-4xl md:text-6xl font-bold mb-5 text-[#ecfdf5] leading-tight">
+                        Unlock Your{" "}
+                        <span
+                            style={{
+                                background: "linear-gradient(135deg, #00ffaa 0%, #34d399 50%, #22d3ee 100%)",
+                                WebkitBackgroundClip: "text",
+                                WebkitTextFillColor: "transparent",
+                                backgroundClip: "text",
+                            }}
+                        >
+                            Full Potential
+                        </span>
+                    </h1>
+                    <p className="text-lg text-[#7fbfb0] max-w-xl mx-auto">
+                        Choose the plan that fits your workflow. Cancel or upgrade anytime.
                     </p>
-                ) : (
-                    <div className={`grid gap-6 w-full ${plans.length === 1 ? "max-w-xs" : plans.length === 2 ? "grid-cols-1 md:grid-cols-2 max-w-2xl" : "grid-cols-1 md:grid-cols-3"}`}>
-                        {plans.map((plan, index) => (
-                            <PlanCard
-                                key={plan.id}
-                                plan={plan}
-                                index={index}
-                                isLoading={subscribing}
-                                onChoose={handleChoosePlan}
+
+                    {/* Billing toggle */}
+                    <div className="flex items-center justify-center gap-4 mt-8">
+                        <span className={`text-sm transition-colors ${!isYearly ? "text-[#ecfdf5]" : "text-[#7fbfb0]"}`}>
+                            Monthly
+                        </span>
+                        <motion.button
+                            onClick={() => setIsYearly(!isYearly)}
+                            className="relative w-14 h-8 rounded-full p-1 focus:outline-none"
+                            style={{ backgroundColor: "#15352a" }}
+                            whileTap={{ scale: 0.95 }}
+                            aria-label="Toggle billing cycle"
+                        >
+                            <motion.div
+                                className="w-6 h-6 rounded-full"
+                                style={{ backgroundColor: "#00ffaa" }}
+                                animate={{ x: isYearly ? 24 : 0 }}
+                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
                             />
-                        ))}
+                        </motion.button>
+                        <span className={`text-sm transition-colors ${isYearly ? "text-[#ecfdf5]" : "text-[#7fbfb0]"}`}>
+                            Yearly{" "}
+                            <span className="ml-1 text-xs font-semibold text-[#00ffaa]">Save 20%</span>
+                        </span>
+                    </div>
+                </motion.div>
+
+                {/* ── Loading ─────────────────────────────────────────────────────── */}
+                {isLoading && (
+                    <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                        <SkeletonCard />
+                        <SkeletonCard />
+                        <SkeletonCard />
                     </div>
                 )}
 
-                {/* Footer note */}
-                <p className="text-[#555] text-xs mt-10 text-center">
-                    No hidden fees · Cancel anytime · Secure payments via Razorpay
-                </p>
+                {/* ── Error ───────────────────────────────────────────────────────── */}
+                {isError && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex flex-col items-center justify-center py-24 gap-4"
+                    >
+                        <div
+                            className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                            style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}
+                        >
+                            <AlertCircle className="w-7 h-7 text-red-400" />
+                        </div>
+                        <p className="text-red-400 font-medium">Failed to load plans</p>
+                        <button
+                            onClick={() => refetch()}
+                            className="px-5 py-2 rounded-xl text-sm font-medium text-[#ecfdf5] transition-all hover:scale-105"
+                            style={{ background: "#15352a", border: "1px solid rgba(0,255,170,0.2)" }}
+                        >
+                            Try Again
+                        </button>
+                    </motion.div>
+                )}
+
+                {/* ── Plan cards ──────────────────────────────────────────────────── */}
+                {!isLoading && !isError && plans.length > 0 && (
+                    <div className={`grid gap-8 ${colsClass}`}>
+                        {plans.map((plan: Plan, index: number) => {
+                            const meta = PLAN_META[index] ?? { description: "Great value plan", popular: false, extraFeatures: [] };
+                            const displayPrice = getDisplayPrice(plan.price);
+                            const features = buildFeatures(plan, index);
+                            const isProcessing = processingPlanId === plan.id;
+
+                            return (
+                                <motion.div
+                                    key={plan.id}
+                                    initial={{ opacity: 0, y: 50 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.15, duration: 0.6, ease: "easeOut" }}
+                                    whileHover={{ y: -10 }}
+                                    className="relative rounded-2xl p-8 flex flex-col"
+                                    style={{
+                                        background: meta.popular
+                                            ? "rgba(0,15,8,0.85)"
+                                            : "rgba(15,27,20,0.7)",
+                                        border: meta.popular
+                                            ? "1px solid rgba(0,255,170,0.4)"
+                                            : "1px solid rgba(0,255,170,0.1)",
+                                        backdropFilter: "blur(20px)",
+                                        boxShadow: meta.popular
+                                            ? "0 0 40px rgba(0,255,170,0.12), 0 20px 60px rgba(0,0,0,0.4)"
+                                            : "0 8px 32px rgba(0,0,0,0.3)",
+                                    }}
+                                >
+                                    {/* Popular badge */}
+                                    {meta.popular && (
+                                        <motion.div
+                                            className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap"
+                                            style={{ backgroundColor: "#00ffaa", color: "#022014" }}
+                                            animate={{
+                                                boxShadow: [
+                                                    "0 0 15px rgba(0,255,170,0.3)",
+                                                    "0 0 28px rgba(0,255,170,0.6)",
+                                                    "0 0 15px rgba(0,255,170,0.3)",
+                                                ],
+                                            }}
+                                            transition={{ duration: 2, repeat: Infinity }}
+                                        >
+                                            <Sparkles className="w-3.5 h-3.5" />
+                                            {meta.badge ?? "Most Popular"}
+                                        </motion.div>
+                                    )}
+
+                                    {/* Title */}
+                                    <div className="mb-6">
+                                        <h3 className="text-2xl font-bold mb-2 text-[#ecfdf5]">{plan.name}</h3>
+                                        <p className="text-sm text-[#7fbfb0]">{meta.description}</p>
+                                    </div>
+
+                                    {/* Price */}
+                                    <div className="mb-8">
+                                        <motion.div
+                                            key={isYearly ? "yearly" : "monthly"}
+                                            initial={{ opacity: 0, y: -8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                            className="flex items-baseline gap-1"
+                                        >
+                                            <span className="text-5xl font-bold text-[#ecfdf5]">₹{displayPrice}</span>
+                                            <span className="text-[#7fbfb0] text-sm ml-1">
+                                                /{isYearly ? "year" : "month"}
+                                            </span>
+                                        </motion.div>
+                                        {isYearly && plan.price > 0 && (
+                                            <p className="text-xs text-[#7fbfb0] mt-1">
+                                                ≈ ₹{Math.round(displayPrice / 12)}/mo · billed annually
+                                            </p>
+                                        )}
+                                        {plan.price === 0 && (
+                                            <p className="text-xs text-[#00ffaa] mt-1 font-medium">Free forever</p>
+                                        )}
+                                    </div>
+
+                                    {/* Features */}
+                                    <ul className="space-y-3.5 mb-8 flex-1">
+                                        {features.map((feature: string, i: number) => (
+                                            <motion.li
+                                                key={feature}
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: index * 0.12 + i * 0.07 + 0.3 }}
+                                                className="flex items-center gap-3 text-sm text-[#ecfdf5]"
+                                            >
+                                                <div
+                                                    className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                                                    style={{ backgroundColor: "rgba(0,255,170,0.15)" }}
+                                                >
+                                                    <Check className="w-3 h-3 text-[#00ffaa]" />
+                                                </div>
+                                                {feature}
+                                            </motion.li>
+                                        ))}
+                                    </ul>
+
+                                    {/* CTA button */}
+                                    <motion.button
+                                        onClick={() => handleSelectPlan(plan)}
+                                        disabled={!!processingPlanId}
+                                        whileHover={!processingPlanId ? { scale: 1.02 } : {}}
+                                        whileTap={!processingPlanId ? { scale: 0.98 } : {}}
+                                        className="w-full py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                                        style={
+                                            meta.popular
+                                                ? {
+                                                    background: "linear-gradient(135deg, #00ffaa, #22d3ee)",
+                                                    color: "#022014",
+                                                    boxShadow: "0 0 24px rgba(0,255,170,0.35)",
+                                                }
+                                                : {
+                                                    background: "#15352a",
+                                                    color: "#ecfdf5",
+                                                    border: "1px solid rgba(0,255,170,0.2)",
+                                                }
+                                        }
+                                    >
+                                        {isProcessing ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Processing…
+                                            </>
+                                        ) : (
+                                            <>
+                                                {meta.popular && <Zap className="w-4 h-4" />}
+                                                {plan.price === 0 ? "Start for Free" : "Subscribe Now"}
+                                            </>
+                                        )}
+                                    </motion.button>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* ── Footer note ─────────────────────────────────────────────────── */}
+                {!isLoading && !isError && (
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.8 }}
+                        className="text-center text-xs text-[#7fbfb0] mt-12"
+                    >
+                        Secure payments powered by Razorpay · Cancel anytime · No hidden fees
+                    </motion.p>
+                )}
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default page
+export default ChoosePlanPage;
