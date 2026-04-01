@@ -66,7 +66,7 @@ const LoginPage = () => {
         Cookies.set("token", response?.data?.token, { expires: 7, path: "/" });
 
         setTimeout(() => {
-          navigate.replace("/");
+          navigate.replace("/generate");
         }, 1500);
       } catch (exception: any) {
         toast.error(exception?.data?.message || "Something went wrong");
