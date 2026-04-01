@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { useDispatch } from "react-redux"
 import { setCredentials } from "@/reduxConfig/slice/authSlice"
 import { LoaderCircle, CheckCircle2, XCircle } from "lucide-react"
+import Cookies from "js-cookie";
 
 const page = () => {
     const [timeLeft, setTimeLeft] = useState(5)
@@ -32,10 +33,14 @@ const page = () => {
     useEffect(() => {
         if (isSuccess) {
             toast.success(data?.message || "Account Verified Successfully")
-            dispatch(setCredentials({
-                user: data?.data,
-                token: data?.data?.token
-            }))
+            dispatch(
+                setCredentials({
+                    user: data?.data,
+                    token: data?.data?.token,
+                })
+            );
+
+            Cookies.set("token", data?.data?.token, { expires: 7, path: "/" });
         }
         if (isError) {
             toast.error((error as any)?.data?.message || "Something went wrong, please try again")

@@ -50,7 +50,7 @@ const SignupPage = () => {
           response?.message || "Verification email sent to your registered email"
         );
         setTimeout(() => {
-          navigate.replace("/verifying-account");
+          navigate.replace("/verify");
         }, 2000);
       } catch (exception: any) {
         toast.error(

@@ -2,6 +2,7 @@
 
 import { CTASection, HeroSection, HowItWorks, PricingSection } from "@/@comp"
 import FeaturesSection from "@/@comp/featuresSection"
+import Footer from "@/@comp/Footer"
 
 
 const page = () => {
@@ -289,6 +290,8 @@ const page = () => {
 
       {/* CTA Section */}
       <CTASection/>
+
+      <Footer/>
 
     </div>
   )

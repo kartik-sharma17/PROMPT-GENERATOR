@@ -55,7 +55,6 @@ const LoginPage = () => {
         const response = await loginApi(values).unwrap();
         toast.success(response?.message || "Login successful!");
 
-        // ✅ Fixed: include subscriptionDetails from login response
         dispatch(
           setCredentials({
             user: response?.data,
