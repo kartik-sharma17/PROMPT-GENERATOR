@@ -1,60 +1,95 @@
-import { ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { motion } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
 
+const footerLinks = {
+  About: [
+    { label: "Product", href: "#" },
+    { label: "Pricing", href: "#pricing" },
+  ],
+  Info: [
+    { label: "Contact Us", href: "#" },
+    { label: "Introducing Prompter", href: "#" },
+  ],
+};
 
-const Footer = () => {
-  const [email, setEmail] = useState("");
+const FooterLink = ({ label, href }: { label: string; href: string }) => (
+  <motion.a
+    href={href}
+    className="group flex items-center justify-between py-4 border-b border-[#253c29]/30 text-lg md:text-xl text-[#86a38a] hover:text-[#00f279] transition-colors duration-300"
+    whileHover={{ x: 4 }}
+  >
+    <span>{label}</span>
+    <ArrowUpRight className="w-5 h-5 opacity-40 group-hover:opacity-100 group-hover:text-[#00f279] transition-all duration-300" />
+  </motion.a>
+);
 
+export const Footer = () => {
   return (
-    <footer className="relative overflow-hidden">
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 grid">
-        <div className="flex flex-col md:flex-row justify-between gap-12 ml-auto">
-
-          {/* Newsletter */}
-          <div className="max-w-sm w-full">
-            <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-6">
-              Stay Updated
-            </h3>
-            <p className="text-foreground-raw text-sm mb-4">
-              Subscribe to our newsletter for the latest updates.
-            </p>
-            <div className="flex items-center gap-2">
-              <input
-                type="email"
-                placeholder="Your Email Address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 bg-sidebar-primary rounded-full px-5 py-3 text-sm text-foreground-raw placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-              />
-              <button
-                className="flex items-center justify-center w-12 h-12 rounded-full bg-(--theme-primary-raw) text-foreground hover:brightness-110 transition-all shrink-0"
-                aria-label="Subscribe"
-              >
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </div>
+    <footer className="relative pt-0 pb-0 overflow-hidden">
+      {/* Main footer content */}
+      <div className="relative max-w-7xl mx-auto bg-gradient-to-b from-[#0a100a] to-[#0a100a]">      
+        {/* Logo + branding area */}
+        <div className="container pt-16 pb-12">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-5xl md:text-7xl font-bold tracking-tight text-[#effaf0]"
+            >
+              Prompter
+            </motion.h2>
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="border-t mt-14 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Prompt Generator. All rights reserved.
-          </p>
+        {/* Link columns */}
+        <div className="container pb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-24 gap-y-12">
+            {Object.entries(footerLinks).map(([category, links], i) => (
+              <motion.div
+                key={category}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#86a38a] mb-2">
+                  {category}
+                </p>
+                <div className="flex flex-col">
+                  {links.map((link) => (
+                    <FooterLink key={link.label} {...link} />
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Big brand watermark */}
-      <div
-        className="overflow-hidden grid"
-        aria-hidden="true"
-      >
-        <span className="text-[100px] my-20 font-black mx-auto leading-none text-(--theme-primary-raw)/10 whitespace-nowrap translate-y-[20%]">
-          Prompt Generator
-        </span>
+        {/* Bottom bar */}
+        <div className="container pb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-[#253c29]/20">
+            <p className="text-xs uppercase tracking-[0.15em] text-[#86a38a]">
+              © Prompter Technologies, 2026
+            </p>
+            <div className="flex gap-6">
+              <a
+                href="#"
+                className="text-xs uppercase tracking-[0.15em] text-[#86a38a] hover:text-[#00f279] transition-colors duration-200"
+              >
+                Privacy
+              </a>
+              <a
+                href="#"
+                className="text-xs uppercase tracking-[0.15em] text-[#86a38a] hover:text-[#00f279] transition-colors duration-200"
+              >
+                Terms
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     </footer>
   );
 };
-
-export default Footer;

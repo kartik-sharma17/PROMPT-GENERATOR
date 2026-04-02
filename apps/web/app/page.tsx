@@ -1,14 +1,14 @@
 "use client"
 
-import { CTASection, HeroSection, HowItWorks, PricingSection } from "@/@comp"
-import FeaturesSection from "@/@comp/featuresSection"
-import Footer from "@/@comp/Footer"
+import { CTASection, HeroSection, HowItWorks, Navbar, PricingSection } from "@/@comp"
+import { Footer } from "@/@comp"
 
 
 const page = () => {
 
   return (
     <div className="bg-(--sec-bg) text-white">
+      <Navbar/>
       {/* hero section */}
       <HeroSection/>
 
