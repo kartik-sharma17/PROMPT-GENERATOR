@@ -561,19 +561,6 @@ const Page = () => {
         <div className="col-span-8 max-h-screen flex flex-col bg-[#0a0a0a]">
           {/* Chat Header */}
           <div className="border-b border-[#1a1a1a] h-14 flex items-center justify-between px-6 bg-[#0d0d0d]">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#00e57a]/30 to-[#00e57a]/10 border border-[#00e57a]/20 flex items-center justify-center">
-                <Bot className="h-4 w-4 text-[#00e57a]" />
-              </div>
-              <div>
-                <p className="text-white text-sm font-medium">AI Prompt Assistant</p>
-                <div className="flex items-center gap-1">
-                  <div className="h-1.5 w-1.5 rounded-full bg-[#00e57a] animate-pulse" />
-                  <p className="text-[#00e57a] text-[10px]">Online</p>
-                </div>
-              </div>
-            </div>
-
             {activeProject && (
               <div className="flex items-center gap-2 bg-[#0d2018] border border-[#00e57a]/20 rounded-lg px-3 py-1.5">
                 <div className="h-2 w-2 rounded-full bg-[#00e57a]" />
@@ -601,7 +588,7 @@ const Page = () => {
                   className={`flex gap-3 ${message.role === "assistant" ? "self-start" : "self-end flex-row-reverse"} max-w-[72%]`}
                 >
                   {/* Avatar */}
-                  {message.role === "assistant" ? (
+                  {/* {message.role === "assistant" ? (
                     <div className="shrink-0 h-7 w-7 rounded-full bg-gradient-to-br from-[#00e57a]/30 to-[#00e57a]/10 border border-[#00e57a]/20 flex items-center justify-center mt-0.5">
                       <Bot className="h-3.5 w-3.5 text-[#00e57a]" />
                     </div>
@@ -609,17 +596,17 @@ const Page = () => {
                     <div className="shrink-0 h-7 w-7 rounded-full bg-[#1e1e1e] border border-[#2a2a2a] flex items-center justify-center mt-0.5">
                       <User className="h-3.5 w-3.5 text-[#929294]" />
                     </div>
-                  )}
+                  )} */}
 
                   <div className="flex flex-col gap-1">
-                    <div
+                    <pre
                       className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${message.role === "assistant"
                         ? "bg-[#141414] border border-[#1e1e1e] text-[#e8e8e8] rounded-tl-sm"
                         : "bg-[#00e57a]/10 border border-[#00e57a]/20 text-white rounded-tr-sm"
                         }`}
                     >
                       {message.text}
-                    </div>
+                    </pre>
                     <span className={`text-[10px] text-[#444] ${message.role === "user" ? "text-right" : "text-left"}`}>
                       {formatTime(message.timeStamp)}
                     </span>

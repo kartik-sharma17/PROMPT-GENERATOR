@@ -2,9 +2,13 @@
 
 import { CTASection, HeroSection, HowItWorks, Navbar, PricingSection } from "@/@comp"
 import { Footer } from "@/@comp"
+import { Rocket, ThumbsDown, Timer } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 
 const page = () => {
+
+  const route = useRouter()
 
   return (
     <div className="bg-(--sec-bg) text-white">
@@ -13,11 +17,11 @@ const page = () => {
       <HeroSection/>
 
       {/* demo video section */}
-      <div className="p-10 px-15 my-10">
+      {/* <div className="p-10 px-15 my-10">
         <div className="h-150 bg-[#63F7A8] rounded-(--custom-radius)">
 
         </div>
-      </div>
+      </div> */}
 
       {/* ── Problem Section ── */}
       <section className="max-w-7xl mx-auto my-10 py-16 px-6">
@@ -74,7 +78,7 @@ const page = () => {
                   border: "1px solid hsl(var(--glow) / 0.25)",
                 }}
               >
-                ⚡
+                <ThumbsDown className="w-4 h-4" />
               </span>
             </div>
             <span
@@ -105,7 +109,7 @@ const page = () => {
                   border: "1px solid hsl(var(--glow) / 0.25)",
                 }}
               >
-                ⏱
+                <Timer className="w-4 h-4"/>
               </span>
             </div>
             <span
@@ -136,7 +140,7 @@ const page = () => {
                   border: "1px solid hsl(var(--glow) / 0.25)",
                 }}
               >
-                🚀
+                <Rocket className="w-4 h-4"/>
               </span>
             </div>
             <span
@@ -207,12 +211,13 @@ const page = () => {
             {/* CTA */}
             <div className="flex flex-col gap-2 mt-2">
               <button
+                onClick={()=>{route.push("/generate")}}
                 className="shimmer neon-glow-box self-start px-8 py-3 rounded-xl font-semibold text-sm text-black cursor-pointer transition-all duration-300 hover:scale-[1.03] active:scale-95"
                 style={{ background: "hsl(var(--theme-primary))" }}
               >
-                Start for Free →
+                Start for Free
               </button>
-              <p className="text-gray-500 text-xs">
+              <p className="text-gray-500 text-xs mt-3">
                 No credit card required · Cancel anytime
               </p>
             </div>
@@ -243,15 +248,6 @@ const page = () => {
                 className="absolute bottom-4 left-4 right-4 glass-card flex items-center gap-3 px-4 py-3"
                 style={{ borderColor: "hsl(var(--glow) / 0.3)" }}
               >
-                <span
-                  className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-base"
-                  style={{
-                    background: "hsl(var(--glow) / 0.2)",
-                    color: "hsl(var(--theme-primary))",
-                  }}
-                >
-                  ⚡
-                </span>
                 <div>
                   <p
                     className="text-xs font-semibold"

@@ -2,6 +2,7 @@ import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import { Check, Sparkles, Loader2, AlertCircle, Zap } from "lucide-react";
 import { useGetPlansQuery } from "@/reduxConfig/service/subscriptionService";
+import { useRouter } from "next/navigation";
 
 // Static metadata per position (description, popular badge, extra features)
 const PLAN_META: Record<number, { description: string; popular: boolean; extraFeatures: string[] }> = {
@@ -51,6 +52,7 @@ const SkeletonCard = () => (
 
 // ── Main component ──────────────────────────────────────────────────────────
 export const PricingSection = () => {
+  const route = useRouter()
   const ref = useRef<HTMLDivElement | null>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [isYearly, setIsYearly] = useState(false);
@@ -236,6 +238,7 @@ export const PricingSection = () => {
 
                   {/* CTA */}
                   <motion.button
+                  onClick={()=>{route.push("/choose-plan")}}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"

@@ -1,33 +1,37 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
+import Link from "next/link";
 
 const footerLinks = {
   About: [
-    { label: "Product", href: "#" },
-    { label: "Pricing", href: "#pricing" },
+    { label: "About us", href: "/about-us" },
+    { label: "Pricing", href: "/choose-plan" },
   ],
   Info: [
-    { label: "Contact Us", href: "#" },
-    { label: "Introducing Prompter", href: "#" },
+    { label: "Contact Us", href: "/contact-us" },
+    { label: "Introducing Prompter", href: "/about-us" },
   ],
 };
 
 const FooterLink = ({ label, href }: { label: string; href: string }) => (
-  <motion.a
-    href={href}
-    className="group flex items-center justify-between py-4 border-b border-[#253c29]/30 text-lg md:text-xl text-[#86a38a] hover:text-[#00f279] transition-colors duration-300"
-    whileHover={{ x: 4 }}
-  >
-    <span>{label}</span>
-    <ArrowUpRight className="w-5 h-5 opacity-40 group-hover:opacity-100 group-hover:text-[#00f279] transition-all duration-300" />
-  </motion.a>
+  <Link href={href}>
+    <motion.div
+      className="group flex items-center justify-between py-4 border-b border-[#253c29]/30 text-lg md:text-xl text-[#86a38a] hover:text-[#00f279] transition-colors duration-300"
+      whileHover={{ x: 4 }}
+    >
+
+      <span>{label}</span>
+      <ArrowUpRight className="w-5 h-5 opacity-40 group-hover:opacity-100 group-hover:text-[#00f279] transition-all duration-300" />
+
+    </motion.div>
+  </Link>
 );
 
 export const Footer = () => {
   return (
     <footer className="relative pt-0 pb-0 overflow-hidden">
       {/* Main footer content */}
-      <div className="relative max-w-7xl mx-auto bg-gradient-to-b from-[#0a100a] to-[#0a100a]">      
+      <div className="relative max-w-7xl mx-auto bg-gradient-to-b from-[#0a100a] to-[#0a100a]">
         {/* Logo + branding area */}
         <div className="container pt-16 pb-12">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">

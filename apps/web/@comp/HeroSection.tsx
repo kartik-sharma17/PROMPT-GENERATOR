@@ -111,6 +111,7 @@ export const HeroSection = () => {
             </CTAButton>
 
             <CTAButton
+            onClick={()=>{route.push("#howitwork")}}
               variant="secondary"
             >
               See How It Works

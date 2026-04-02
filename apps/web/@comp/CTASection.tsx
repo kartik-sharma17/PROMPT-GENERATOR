@@ -2,10 +2,12 @@ import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { CTAButton } from "./CTAButton";
 import { Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export const CTASection = () => {
   const ref = useRef<HTMLDivElement | null>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const route = useRouter()
 
   return (
     <section ref={ref} className="relative py-32 overflow-hidden">
@@ -123,7 +125,7 @@ export const CTASection = () => {
               }}
               className="rounded-xl"
             >
-              <CTAButton>Start Generating for Free</CTAButton>
+              <CTAButton onClick={()=>{route.push("/generate")}}>Start Generating for Free</CTAButton>
             </motion.div>
           </motion.div>
         </motion.div>
