@@ -97,21 +97,21 @@ export const PricingSection = () => {
             </span>
             <motion.button
               onClick={() => setIsYearly(!isYearly)}
-              className="relative w-14 h-8 rounded-full p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00ffaa]"
+              className="relative w-14 h-8 rounded-full p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--theme-primary-raw)"
               style={{ backgroundColor: "#15352a" }}
               whileTap={{ scale: 0.95 }}
               aria-label="Toggle billing cycle"
             >
               <motion.div
                 className="w-6 h-6 rounded-full"
-                style={{ backgroundColor: "#00ffaa" }}
+                style={{ backgroundColor: "var(--theme-primary-raw)" }}
                 animate={{ x: isYearly ? 24 : 0 }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             </motion.button>
             <span className={`text-sm transition-colors ${isYearly ? "text-[#ecfdf5]" : "text-[#7fbfb0]"}`}>
               Yearly{" "}
-              <span className="ml-1 text-xs font-semibold text-[#00ffaa]">Save 20%</span>
+              <span className="ml-1 text-xs font-semibold text-var(--theme-primary-raw)">Save 20%</span>
             </span>
           </div>
         </motion.div>
@@ -171,7 +171,7 @@ export const PricingSection = () => {
                   {meta.popular && (
                     <motion.div
                       className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 shimmer whitespace-nowrap"
-                      style={{ backgroundColor: "#00ffaa", color: "#022014" }}
+                      style={{ backgroundColor: "var(--theme-primary-raw)", color: "#022014" }}
                       animate={{
                         boxShadow: [
                           "0 0 15px rgba(0,255,170,0.3)",
@@ -229,7 +229,7 @@ export const PricingSection = () => {
                           className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
                           style={{ backgroundColor: "rgba(0,255,170,0.15)" }}
                         >
-                          <Check className="w-3 h-3 text-[#00ffaa]" />
+                          <Check className="w-3 h-3 text-(--theme-primary-raw)" />
                         </div>
                         {feature}
                       </motion.li>
@@ -244,7 +244,7 @@ export const PricingSection = () => {
                     className="w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
                     style={
                       meta.popular
-                        ? { backgroundColor: "#00ffaa", color: "#022014", boxShadow: "0 0 20px rgba(0,255,170,0.3)" }
+                        ? { backgroundColor: "var(--theme-primary-raw)", color: "#022014", boxShadow: "0 0 20px rgba(0,255,170,0.3)" }
                         : { backgroundColor: "#15352a", color: "#ecfdf5", border: "1px solid rgba(0,255,170,0.15)" }
                     }
                   >

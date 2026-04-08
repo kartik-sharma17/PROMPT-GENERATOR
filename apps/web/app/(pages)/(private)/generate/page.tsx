@@ -10,9 +10,15 @@ import { useFormik } from "formik"
 import {
   ChevronRight, CircleCheck, CirclePlus, History, MessageSquareMore,
   MessageSquareShare, Mic, Palette, Pencil, Search, Send, Settings,
-  Trash2, User, X, Zap, Shield, Bot, MoreHorizontal
+  Trash2, User, X, Zap, Shield, Bot, MoreHorizontal,
+  LogOut,
+  Landmark
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useDispatch } from "react-redux"
+import { logout } from "@/reduxConfig/slice/authSlice"
+import { useRouter } from "next/navigation"
+import Cookies from "js-cookie";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -68,6 +74,9 @@ const Page = () => {
   const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null)
   const [selectedConstraints, setSelectedConstraints] = useState<string[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+
+  const dispatch = useDispatch();
+  const route = useRouter()
 
   // Project state
   const [showProjectModal, setShowProjectModal] = useState(false)
@@ -210,6 +219,12 @@ const Page = () => {
     setSelectedProjectId(null)
     setSelectedConstraints([])
     setChatScreen(false)
+  }
+
+  const handleLogout = () => {
+    dispatch(logout())
+    Cookies.remove("token");
+    route.push("/")
   }
 
   /** Load messages for a history item — also restores project + constraints */
@@ -390,7 +405,6 @@ const Page = () => {
     </div>
   )
 
-  // ── Task 1: Constraints Full Modal ──
   const ConstraintsModal = () => (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-[#111] border border-[#222] rounded-xl w-full max-w-lg max-h-[70vh] flex flex-col shadow-2xl">
@@ -467,7 +481,7 @@ const Page = () => {
     </div>
   )
 
-  // ─── Constraint bar above input ───────────────────────────────────────────
+
   const ConstraintsBar = () => (
     <div className="bg-[#0d0d0d] border border-[#1e1e1e] border-b-0 gap-1.5 mx-auto flex flex-wrap w-7/10 rounded-t-xl p-2 items-center">
       <Shield className="h-3 w-3 text-[#00e57a] shrink-0" />
@@ -535,23 +549,49 @@ const Page = () => {
           <div className="p-3 border-b border-[#1a1a1a]">
             <button
               onClick={handleNewChat}
-              className="w-full flex gap-2 items-center justify-center text-xs font-medium text-black bg-[#00e57a] hover:bg-[#00cc6a] transition-colors p-2 rounded-lg"
+              className="w-full flex gap-2 items-center justify-center text-xs bg-(--theme-primary-raw) font-medium text-black hover:bg-[#00cc6a] transition-colors p-2 rounded-lg"
             >
               <MessageSquareShare className="w-3.5 h-3.5" /> New Chat
             </button>
           </div>
 
           <div className="p-3 border-b border-[#1a1a1a]">
-            {[
-              { icon: Search, label: "Search" },
-              { icon: User, label: "My Profile" },
-              { icon: Settings, label: "Settings" },
-              { icon: Palette, label: "Theme" },
-            ].map(({ icon: Icon, label }) => (
-              <button key={label} className="text-[#929294] hover:text-white text-xs my-2 flex gap-2 items-center w-full transition-colors">
-                <Icon className="w-3.5 h-3.5" /> {label}
-              </button>
-            ))}
+            <button
+              onClick={handleLogout}
+              className="text-white text-xs flex my-3 gap-2 items-center group hover:text-[#929294] transition-colors w-full text-left"
+            >
+              <LogOut className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> Logout
+            </button>
+            <button
+              onClick={() => { route.push("/my-plan") }}
+              className="text-white text-xs flex my-3 gap-2 items-center group hover:text-[#929294] transition-colors w-full text-left"
+            >
+              <Landmark className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> My plan
+            </button>
+            {/* <button
+              onClick={() => { route.push("/my-plan") }}
+              className="text-white text-xs flex my-3 gap-2 items-center group hover:text-[#929294] transition-colors w-full text-left"
+            >
+              <Landmark className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> Settings
+            </button>
+            <button
+              onClick={() => { route.push("/my-plan") }}
+              className="text-white text-xs flex my-3 gap-2 items-center group hover:text-[#929294] transition-colors w-full text-left"
+            >
+              <Landmark className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> Profile
+            </button>
+            <button
+              onClick={() => { route.push("/my-plan") }}
+              className="text-white text-xs flex my-3 gap-2 items-center group hover:text-[#929294] transition-colors w-full text-left"
+            >
+              <Landmark className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> Search
+            </button>
+            <button
+              onClick={() => { route.push("/my-plan") }}
+              className="text-white text-xs flex my-3 gap-2 items-center group hover:text-[#929294] transition-colors w-full text-left"
+            >
+              <Landmark className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> Theme
+            </button> */}
           </div>
 
           <HistoryList />
@@ -600,7 +640,7 @@ const Page = () => {
 
                   <div className="flex flex-col gap-1">
                     <pre
-                      className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${message.role === "assistant"
+                      className={`px-4 whitespace-pre-wrap py-3 rounded-2xl text-sm leading-relaxed ${message.role === "assistant"
                         ? "bg-[#141414] border border-[#1e1e1e] text-[#e8e8e8] rounded-tl-sm"
                         : "bg-[#00e57a]/10 border border-[#00e57a]/20 text-white rounded-tr-sm"
                         }`}
@@ -666,7 +706,7 @@ const Page = () => {
                 <button
                   onClick={handleSubmit}
                   disabled={isLoading || !formik.values.text.trim()}
-                  className="h-8 px-4 flex items-center gap-1.5 rounded-lg bg-[#00e57a] hover:bg-[#00cc6a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-black text-xs font-semibold"
+                  className="h-8 px-4 flex items-center gap-1.5 rounded-lg bg-(--theme-primary-raw) hover:bg-[#00cc6a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-black text-xs font-semibold"
                 >
                   <Send className="h-3 w-3" />
                   Send
@@ -772,9 +812,21 @@ const Page = () => {
         <div className="p-3">
           <button
             onClick={handleNewChat}
-            className="text-white text-xs flex my-3 gap-2 items-center hover:text-[#929294] transition-colors w-full text-left"
+            className="text-white text-xs flex my-3 gap-2 group items-center hover:text-[#929294] transition-colors w-full text-left"
           >
-            <MessageSquareShare className="w-3.5 h-3.5 text-white" /> New Chat
+            <MessageSquareShare className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> New Chat
+          </button>
+          <button
+            onClick={handleLogout}
+            className="text-white text-xs flex my-3 gap-2 items-center group hover:text-[#929294] transition-colors w-full text-left"
+          >
+            <LogOut className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> Logout
+          </button>
+          <button
+            onClick={() => { route.push("/my-plan") }}
+            className="text-white text-xs flex my-3 gap-2 items-center group hover:text-[#929294] transition-colors w-full text-left"
+          >
+            <Landmark className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> My plan
           </button>
         </div>
 
@@ -848,7 +900,7 @@ const Page = () => {
               <button
                 onClick={handleStartChat}
                 disabled={isLoading || !formik.values.text.trim()}
-                className="h-8 px-4 flex items-center gap-1.5 rounded-lg bg-[#00e57a] hover:bg-[#00cc6a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-black text-xs font-bold"
+                className="h-8 px-4 flex items-center gap-1.5 rounded-lg bg-(--theme-primary-raw) hover:bg-[#00cc6a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-black text-xs font-bold"
               >
                 <Send className="h-3 w-3" />
                 Start Chat

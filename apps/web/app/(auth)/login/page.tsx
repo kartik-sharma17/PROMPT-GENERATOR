@@ -26,7 +26,7 @@ const Dot = ({ delay, x, y }: { delay: number; x: string; y: string }) => (
     style={{
       width: 3,
       height: 3,
-      background: "rgba(0,255,170,0.35)",
+      background: "color-mix(in srgb, var(--theme-primary-raw) 35%, transparent)",
       top: y,
       left: x,
     }}
@@ -84,13 +84,14 @@ const LoginPage = () => {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,255,170,0.1) 0%, transparent 70%)",
+            "radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--theme-primary-raw) 10%, transparent) 0%, transparent 70%)",
         }}
       />
       <div
         className="absolute bottom-0 right-0 w-96 h-96 rounded-full pointer-events-none"
         style={{
-          background: "radial-gradient(circle, rgba(34,211,238,0.06) 0%, transparent 70%)",
+          background:
+            "radial-gradient(circle, color-mix(in srgb, var(--theme-primary-raw) 6%, transparent) 0%, transparent 70%)",
           filter: "blur(60px)",
         }}
       />
@@ -113,17 +114,18 @@ const LoginPage = () => {
           className="rounded-3xl overflow-hidden"
           style={{
             background: "rgba(10, 20, 14, 0.85)",
-            border: "1px solid rgba(0,255,170,0.14)",
+            border: "1px solid color-mix(in srgb, var(--theme-primary-raw) 14%, transparent)",
             backdropFilter: "blur(24px)",
             boxShadow:
-              "0 0 0 1px rgba(0,255,170,0.04), 0 24px 64px rgba(0,0,0,0.55), 0 0 80px rgba(0,255,170,0.04)",
+              "0 0 0 1px color-mix(in srgb, var(--theme-primary-raw) 4%, transparent), 0 24px 64px rgba(0,0,0,0.55), 0 0 80px color-mix(in srgb, var(--theme-primary-raw) 4%, transparent)",
           }}
         >
           {/* Top accent bar */}
           <div
             className="h-0.5 w-full"
             style={{
-              background: "linear-gradient(90deg, transparent, rgba(0,255,170,0.6), transparent)",
+              background:
+                "linear-gradient(90deg, transparent, color-mix(in srgb, var(--theme-primary-raw) 60%, transparent), transparent)",
             }}
           />
 
@@ -136,24 +138,28 @@ const LoginPage = () => {
                 transition={{ delay: 0.15, type: "spring", stiffness: 260 }}
                 className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
                 style={{
-                  background: "linear-gradient(135deg, rgba(0,255,170,0.18), rgba(34,211,238,0.1))",
-                  border: "1px solid rgba(0,255,170,0.25)",
-                  boxShadow: "0 0 20px rgba(0,255,170,0.12)",
+                  background:
+                    "linear-gradient(135deg, color-mix(in srgb, var(--theme-primary-raw) 18%, transparent), color-mix(in srgb, var(--theme-primary-raw) 8%, transparent))",
+                  border: "1px solid color-mix(in srgb, var(--theme-primary-raw) 25%, transparent)",
+                  boxShadow: "0 0 20px color-mix(in srgb, var(--theme-primary-raw) 12%, transparent)",
                 }}
               >
-                <Zap className="w-5 h-5 text-[#00ffaa]" />
+                <Zap className="w-5 h-5" style={{ color: "var(--theme-primary-raw)" }} />
               </motion.div>
 
               {/* Status badge */}
               <span
                 className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-widest uppercase"
                 style={{
-                  background: "rgba(0,255,170,0.07)",
-                  border: "1px solid rgba(0,255,170,0.18)",
-                  color: "#00ffaa",
+                  background: "color-mix(in srgb, var(--theme-primary-raw) 7%, transparent)",
+                  border: "1px solid color-mix(in srgb, var(--theme-primary-raw) 18%, transparent)",
+                  color: "var(--theme-primary-raw)",
                 }}
               >
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#00ffaa] animate-pulse" />
+                <span
+                  className="inline-block w-1.5 h-1.5 rounded-full animate-pulse"
+                  style={{ background: "var(--theme-primary-raw)" }}
+                />
                 Secure Login
               </span>
             </div>
@@ -190,8 +196,12 @@ const LoginPage = () => {
                     href="#"
                     className="text-xs transition-colors"
                     style={{ color: "#6b8a7a" }}
-                    onMouseOver={(e) => ((e.target as HTMLElement).style.color = "#00ffaa")}
-                    onMouseOut={(e) => ((e.target as HTMLElement).style.color = "#6b8a7a")}
+                    onMouseOver={(e) =>
+                      ((e.target as HTMLElement).style.color = "var(--theme-primary-raw)")
+                    }
+                    onMouseOut={(e) =>
+                      ((e.target as HTMLElement).style.color = "#6b8a7a")
+                    }
                   >
                     Forgot password?
                   </Link>
@@ -206,9 +216,11 @@ const LoginPage = () => {
                 whileTap={!isLoading ? { scale: 0.985 } : {}}
                 className="relative w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mt-2 overflow-hidden transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{
-                  background: "linear-gradient(135deg, #00ffaa 0%, #22d3ee 100%)",
+                  background:
+                    "linear-gradient(135deg, var(--theme-primary-raw) 0%, color-mix(in srgb, var(--theme-primary-raw) 50%, white) 100%)",
                   color: "#011a0d",
-                  boxShadow: "0 0 28px rgba(0,255,170,0.28), 0 4px 12px rgba(0,0,0,0.3)",
+                  boxShadow:
+                    "0 0 28px color-mix(in srgb, var(--theme-primary-raw) 28%, transparent), 0 4px 12px rgba(0,0,0,0.3)",
                 }}
               >
                 {/* Shimmer effect */}
@@ -243,7 +255,7 @@ const LoginPage = () => {
               <Link
                 href="/signup"
                 className="font-semibold transition-colors"
-                style={{ color: "#00ffaa" }}
+                style={{ color: "var(--theme-primary-raw)" }}
               >
                 Create one free →
               </Link>
@@ -256,7 +268,8 @@ const LoginPage = () => {
           className="absolute -inset-px rounded-3xl pointer-events-none"
           style={{
             background: "transparent",
-            boxShadow: "0 0 0 1px rgba(0,255,170,0.06)",
+            boxShadow:
+              "0 0 0 1px color-mix(in srgb, var(--theme-primary-raw) 6%, transparent)",
           }}
         />
       </motion.div>

@@ -64,7 +64,13 @@ const getProgressPercent = (start?: string, end?: string): number => {
 const Dot = ({ delay, x, y }: { delay: number; x: string; y: string }) => (
   <motion.span
     className="absolute rounded-full pointer-events-none"
-    style={{ width: 2.5, height: 2.5, background: "rgba(0,255,170,0.25)", top: y, left: x }}
+    style={{
+      width: 2.5,
+      height: 2.5,
+      background: "color-mix(in srgb, var(--theme-primary-raw) 25%, transparent)",
+      top: y,
+      left: x,
+    }}
     animate={{ y: [0, -12, 0], opacity: [0.15, 0.55, 0.15] }}
     transition={{ duration: 4 + delay, delay, repeat: Infinity, ease: "easeInOut" }}
   />
@@ -98,17 +104,21 @@ const StatCard = ({
     className="rounded-2xl p-6 flex flex-col gap-3"
     style={{
       background: "rgba(10,22,15,0.7)",
-      border: accent ? "1px solid rgba(0,255,170,0.25)" : "1px solid rgba(0,255,170,0.08)",
+      border: accent
+        ? "1px solid color-mix(in srgb, var(--theme-primary-raw) 25%, transparent)"
+        : "1px solid color-mix(in srgb, var(--theme-primary-raw) 8%, transparent)",
       backdropFilter: "blur(16px)",
       boxShadow: accent
-        ? "0 0 24px rgba(0,255,170,0.08), 0 8px 24px rgba(0,0,0,0.3)"
+        ? "0 0 24px color-mix(in srgb, var(--theme-primary-raw) 8%, transparent), 0 8px 24px rgba(0,0,0,0.3)"
         : "0 4px 16px rgba(0,0,0,0.25)",
     }}
   >
     <div
       className="w-10 h-10 rounded-xl flex items-center justify-center"
       style={{
-        background: accent ? "rgba(0,255,170,0.15)" : "rgba(255,255,255,0.05)",
+        background: accent
+          ? "color-mix(in srgb, var(--theme-primary-raw) 15%, transparent)"
+          : "rgba(255,255,255,0.05)",
       }}
     >
       {icon}
@@ -138,12 +148,12 @@ const NoSubscription = () => (
     <div
       className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6"
       style={{
-        background: "rgba(0,255,170,0.08)",
-        border: "1px solid rgba(0,255,170,0.15)",
-        boxShadow: "0 0 30px rgba(0,255,170,0.06)",
+        background: "color-mix(in srgb, var(--theme-primary-raw) 8%, transparent)",
+        border: "1px solid color-mix(in srgb, var(--theme-primary-raw) 15%, transparent)",
+        boxShadow: "0 0 30px color-mix(in srgb, var(--theme-primary-raw) 6%, transparent)",
       }}
     >
-      <Zap className="w-8 h-8 text-[#00ffaa] opacity-60" />
+      <Zap className="w-8 h-8 opacity-60" style={{ color: "var(--theme-primary-raw)" }} />
     </div>
     <h2 className="text-2xl font-bold text-white mb-3">No Active Plan</h2>
     <p className="text-sm max-w-sm mb-8" style={{ color: "#6b8a7a" }}>
@@ -156,9 +166,10 @@ const NoSubscription = () => (
         whileTap={{ scale: 0.97 }}
         className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm"
         style={{
-          background: "linear-gradient(135deg, #00ffaa 0%, #22d3ee 100%)",
+          background:
+            "linear-gradient(135deg, var(--theme-primary-raw) 0%, color-mix(in srgb, var(--theme-primary-raw) 50%, white) 100%)",
           color: "#011a0d",
-          boxShadow: "0 0 24px rgba(0,255,170,0.3)",
+          boxShadow: "0 0 24px color-mix(in srgb, var(--theme-primary-raw) 30%, transparent)",
         }}
       >
         <Sparkles className="w-4 h-4" />
@@ -196,7 +207,7 @@ const MyPlanPage = () => {
         className="absolute top-0 inset-x-0 h-80 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 70% 100% at 50% 0%, rgba(0,255,170,0.07) 0%, transparent 70%)",
+            "radial-gradient(ellipse 70% 100% at 50% 0%, color-mix(in srgb, var(--theme-primary-raw) 7%, transparent) 0%, transparent 70%)",
         }}
       />
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -220,7 +231,19 @@ const MyPlanPage = () => {
             style={{ color: "#6b8a7a" }}
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span className="group-hover:text-[#00ffaa] transition-colors">Back to Home</span>
+            <span
+              className="transition-colors"
+              style={{ color: "inherit" }}
+              onMouseEnter={(e) =>
+                ((e.currentTarget as HTMLElement).style.color =
+                  "var(--theme-primary-raw)")
+              }
+              onMouseLeave={(e) =>
+                ((e.currentTarget as HTMLElement).style.color = "inherit")
+              }
+            >
+              Back to Home
+            </span>
           </Link>
         </motion.div>
 
@@ -235,11 +258,11 @@ const MyPlanPage = () => {
             <div
               className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
               style={{
-                background: "rgba(0,255,170,0.12)",
-                border: "1px solid rgba(0,255,170,0.2)",
+                background: "color-mix(in srgb, var(--theme-primary-raw) 12%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--theme-primary-raw) 20%, transparent)",
               }}
             >
-              <ShieldCheck className="w-5 h-5 text-[#00ffaa]" />
+              <ShieldCheck className="w-5 h-5" style={{ color: "var(--theme-primary-raw)" }} />
             </div>
             <h1 className="text-3xl font-bold text-white tracking-tight">My Plan</h1>
           </div>
@@ -261,9 +284,9 @@ const MyPlanPage = () => {
               className="relative rounded-3xl overflow-hidden mb-6"
               style={{
                 background: "rgba(8, 18, 12, 0.9)",
-                border: "1px solid rgba(0,255,170,0.22)",
+                border: "1px solid color-mix(in srgb, var(--theme-primary-raw) 22%, transparent)",
                 boxShadow:
-                  "0 0 60px rgba(0,255,170,0.08), 0 24px 64px rgba(0,0,0,0.4)",
+                  "0 0 60px color-mix(in srgb, var(--theme-primary-raw) 8%, transparent), 0 24px 64px rgba(0,0,0,0.4)",
               }}
             >
               {/* Accent bar */}
@@ -271,7 +294,7 @@ const MyPlanPage = () => {
                 className="h-0.5 w-full"
                 style={{
                   background:
-                    "linear-gradient(90deg, transparent, rgba(0,255,170,0.7), transparent)",
+                    "linear-gradient(90deg, transparent, color-mix(in srgb, var(--theme-primary-raw) 70%, transparent), transparent)",
                 }}
               />
 
@@ -284,12 +307,14 @@ const MyPlanPage = () => {
                         className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
                         style={{
                           background: subscription.isActive
-                            ? "rgba(0,255,170,0.12)"
+                            ? "color-mix(in srgb, var(--theme-primary-raw) 12%, transparent)"
                             : "rgba(239,68,68,0.1)",
                           border: subscription.isActive
-                            ? "1px solid rgba(0,255,170,0.25)"
+                            ? "1px solid color-mix(in srgb, var(--theme-primary-raw) 25%, transparent)"
                             : "1px solid rgba(239,68,68,0.2)",
-                          color: subscription.isActive ? "#00ffaa" : "#f87171",
+                          color: subscription.isActive
+                            ? "var(--theme-primary-raw)"
+                            : "#f87171",
                         }}
                       >
                         {subscription.isActive ? (
@@ -318,7 +343,7 @@ const MyPlanPage = () => {
                       className="text-4xl font-bold mb-2"
                       style={{
                         background:
-                          "linear-gradient(135deg, #ecfdf5 0%, #00ffaa 60%, #22d3ee 100%)",
+                          "linear-gradient(135deg, #ecfdf5 0%, var(--theme-primary-raw) 60%, color-mix(in srgb, var(--theme-primary-raw) 50%, white) 100%)",
                         WebkitBackgroundClip: "text",
                         WebkitTextFillColor: "transparent",
                         backgroundClip: "text",
@@ -344,7 +369,9 @@ const MyPlanPage = () => {
                       </span>
                     </div>
                     {(subscription.planPrice ?? 0) === 0 && (
-                      <p className="text-xs mt-1 text-[#00ffaa]">Free plan</p>
+                      <p className="text-xs mt-1" style={{ color: "var(--theme-primary-raw)" }}>
+                        Free plan
+                      </p>
                     )}
                   </div>
                 </div>
@@ -355,7 +382,13 @@ const MyPlanPage = () => {
                     <span className="text-xs font-medium" style={{ color: "#6b8a7a" }}>
                       Subscription period
                     </span>
-                    <span className="text-xs font-semibold" style={{ color: daysRemaining > 0 ? "#00ffaa" : "#f87171" }}>
+                    <span
+                      className="text-xs font-semibold"
+                      style={{
+                        color:
+                          daysRemaining > 0 ? "var(--theme-primary-raw)" : "#f87171",
+                      }}
+                    >
                       {daysRemaining > 0 ? `${daysRemaining} days remaining` : "Expired"}
                     </span>
                   </div>
@@ -372,9 +405,10 @@ const MyPlanPage = () => {
                       style={{
                         background:
                           progress > 80
-                            ? "linear-gradient(90deg, #00ffaa, #fbbf24)"
-                            : "linear-gradient(90deg, #00ffaa, #22d3ee)",
-                        boxShadow: "0 0 8px rgba(0,255,170,0.4)",
+                            ? "linear-gradient(90deg, var(--theme-primary-raw), #fbbf24)"
+                            : "linear-gradient(90deg, var(--theme-primary-raw), color-mix(in srgb, var(--theme-primary-raw) 50%, white))",
+                        boxShadow:
+                          "0 0 8px color-mix(in srgb, var(--theme-primary-raw) 40%, transparent)",
                       }}
                     />
                   </div>
@@ -393,7 +427,9 @@ const MyPlanPage = () => {
             {/* ── Stats grid ──────────────────────────────────────────── */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <StatCard
-                icon={<BarChart3 className="w-5 h-5 text-[#00ffaa]" />}
+                icon={
+                  <BarChart3 className="w-5 h-5" style={{ color: "var(--theme-primary-raw)" }} />
+                }
                 label="Daily Prompt Limit"
                 value={subscription.planDailyLimit ?? "—"}
                 sub="prompts per day"
@@ -458,9 +494,11 @@ const MyPlanPage = () => {
                   whileTap={{ scale: 0.98 }}
                   className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
                   style={{
-                    background: "linear-gradient(135deg, #00ffaa 0%, #22d3ee 100%)",
+                    background:
+                      "linear-gradient(135deg, var(--theme-primary-raw) 0%, color-mix(in srgb, var(--theme-primary-raw) 50%, white) 100%)",
                     color: "#011a0d",
-                    boxShadow: "0 0 24px rgba(0,255,170,0.25)",
+                    boxShadow:
+                      "0 0 24px color-mix(in srgb, var(--theme-primary-raw) 25%, transparent)",
                   }}
                 >
                   <Sparkles className="w-4 h-4" />
@@ -476,7 +514,8 @@ const MyPlanPage = () => {
                   className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
                   style={{
                     background: "rgba(10,22,15,0.7)",
-                    border: "1px solid rgba(0,255,170,0.18)",
+                    border:
+                      "1px solid color-mix(in srgb, var(--theme-primary-raw) 18%, transparent)",
                     color: "#ecfdf5",
                   }}
                 >
@@ -494,11 +533,15 @@ const MyPlanPage = () => {
               className="mt-6 rounded-2xl p-6"
               style={{
                 background: "rgba(10,22,15,0.6)",
-                border: "1px solid rgba(0,255,170,0.07)",
+                border:
+                  "1px solid color-mix(in srgb, var(--theme-primary-raw) 7%, transparent)",
               }}
             >
               <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#00ffaa]" />
+                <CheckCircle2
+                  className="w-4 h-4"
+                  style={{ color: "var(--theme-primary-raw)" }}
+                />
                 What's included
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -513,9 +556,15 @@ const MyPlanPage = () => {
                   <div key={feature} className="flex items-center gap-2.5">
                     <div
                       className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: "rgba(0,255,170,0.12)" }}
+                      style={{
+                        background:
+                          "color-mix(in srgb, var(--theme-primary-raw) 12%, transparent)",
+                      }}
                     >
-                      <CheckCircle2 className="w-3 h-3 text-[#00ffaa]" />
+                      <CheckCircle2
+                        className="w-3 h-3"
+                        style={{ color: "var(--theme-primary-raw)" }}
+                      />
                     </div>
                     <span className="text-sm" style={{ color: "#9bbfb0" }}>
                       {feature}

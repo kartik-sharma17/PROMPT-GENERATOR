@@ -47,7 +47,7 @@ export const CTAButton = ({
       onClick={onClick}
       className="
         group relative px-8 py-4 rounded-xl overflow-hidden
-        bg-[#00ffaa]
+        bg-(--theme-primary-raw)
         text-[#022014]
         font-semibold
       "
