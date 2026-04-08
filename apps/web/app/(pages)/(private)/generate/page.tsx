@@ -222,6 +222,7 @@ const Page = () => {
   }
 
   const handleLogout = () => {
+    localStorage.setItem("manualLogout", "true");  
     dispatch(logout())
     Cookies.remove("token");
     route.push("/")

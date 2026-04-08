@@ -1,25 +1,43 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
 
-export default function proxy(request: NextRequest) {
-    const { pathname } = request.nextUrl;
+const PUBLIC_ROUTES = ["/", "/login", "/signup", "/verify", "/verify-account"];
 
-    const PUBLIC_ROUTES = ["/", "/login", "/signup","/verify","/verify-account"];
+async function verifyToken(token: string) {
+  try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    await jwtVerify(token, secret);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-    const token = request.cookies.get("token")?.value;
+export default async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
-    if (PUBLIC_ROUTES.includes(pathname)) {
-        return NextResponse.next();
-    }
-
-    if (!token) {
-        const url = new URL("/login", request.url);
-        return NextResponse.redirect(url);
-    }
-
+  if (PUBLIC_ROUTES.includes(pathname)) {
     return NextResponse.next();
+  }
+
+  const token = request.cookies.get("token")?.value;
+
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  const isValid = await verifyToken(token);
+
+  if (!isValid) {
+    const response = NextResponse.redirect(new URL("/login", request.url));
+    response.cookies.delete("token");
+    return response;
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
-    matcher: ["/((?!_next|favicon.ico).*)"],
-}
+  matcher: ["/((?!_next|favicon.ico).*)"],
+};
