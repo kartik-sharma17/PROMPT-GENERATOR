@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import { Mail, RotateCcw, CheckCircle2 } from "lucide-react"
+import { useResendVerificationMutation } from "@/reduxConfig/service/authService"
+import { toast } from "sonner"
 
 // ── Floating dot ───────────────────────────────────────────────────────────────
 const Dot = ({ delay, x, y }: { delay: number; x: string; y: string }) => (
@@ -67,11 +69,15 @@ const TOTAL_TIME = 120
 
 const VerifyPage = () => {
   const searchParams = useSearchParams()
-  const mail = searchParams.get("email") || "your email"
+  // Email is passed from signup page as: /verify?email=user@email.com
+  const mail = searchParams.get("email") || ""
 
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME)
   const [canResend, setCanResend] = useState(false)
   const [resent, setResent] = useState(false)
+
+  // ── RTK Query mutation ─────────────────────────────────────────────────────
+  const [resendVerification, { isLoading: isResending }] = useResendVerificationMutation()
 
   useEffect(() => {
     if (timeLeft === 0) {
@@ -82,12 +88,24 @@ const VerifyPage = () => {
     return () => clearInterval(timer)
   }, [timeLeft])
 
-  const handleResend = () => {
-    if (!canResend) return
-    setResent(true)
-    setCanResend(false)
-    setTimeLeft(TOTAL_TIME)
-    setTimeout(() => setResent(false), 3000)
+  const handleResend = async () => {
+    if (!canResend || isResending) return
+
+    if (!mail) {
+      toast.error("Email not found. Please go back and sign up again.")
+      return
+    }
+
+    try {
+      const response = await resendVerification(mail).unwrap()
+      toast.success(response?.message || "Verification email resent successfully!")
+      setResent(true)
+      setCanResend(false)
+      setTimeLeft(TOTAL_TIME)
+      setTimeout(() => setResent(false), 3000)
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to resend email. Please try again.")
+    }
   }
 
   const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0")
@@ -219,7 +237,7 @@ const VerifyPage = () => {
               Verify Your Account
             </motion.h1>
 
-            {/* Sub-text with dynamic email */}
+            {/* Sub-text with dynamic email from URL param */}
             <motion.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -241,7 +259,7 @@ const VerifyPage = () => {
                 wordBreak: "break-all",
               }}
             >
-              {mail}
+              {mail || "your email"}
             </motion.p>
 
             {/* ── Timer ring ──────────────────────────────────────────────── */}
@@ -265,12 +283,12 @@ const VerifyPage = () => {
             {/* ── Resend button ────────────────────────────────────────────── */}
             <motion.button
               onClick={handleResend}
-              disabled={!canResend}
-              whileHover={canResend ? { scale: 1.015 } : {}}
-              whileTap={canResend ? { scale: 0.985 } : {}}
+              disabled={!canResend || isResending}
+              whileHover={canResend && !isResending ? { scale: 1.015 } : {}}
+              whileTap={canResend && !isResending ? { scale: 0.985 } : {}}
               className="relative w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 overflow-hidden transition-all"
               style={
-                canResend
+                canResend && !isResending
                   ? {
                       background:
                         "linear-gradient(135deg, var(--theme-primary-raw) 0%, color-mix(in srgb, var(--theme-primary-raw) 50%, white) 100%)",
@@ -287,7 +305,7 @@ const VerifyPage = () => {
               }
             >
               {/* Shimmer on active */}
-              {canResend && (
+              {canResend && !isResending && (
                 <motion.span
                   className="absolute inset-0 pointer-events-none"
                   style={{
@@ -303,6 +321,16 @@ const VerifyPage = () => {
                 <>
                   <CheckCircle2 className="w-4 h-4" />
                   Email Resent!
+                </>
+              ) : isResending ? (
+                <>
+                  <motion.span
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </motion.span>
+                  Sending…
                 </>
               ) : (
                 <>

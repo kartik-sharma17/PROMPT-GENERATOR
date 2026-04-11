@@ -1,28 +1,31 @@
 "use client";
 
-import { CustomInput } from "@/@core";
-import { useContactUsMutation } from "@/reduxConfig/service/authService";
+import { CustomPasswordInput } from "@/@core";
+import { useResetPasswordMutation } from "@/reduxConfig/service/authService";
 import { useFormik } from "formik";
-import { LoaderCircle, Mail, CheckCircle2 } from "lucide-react";
+import { LoaderCircle, Zap, CheckCircle2, XCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 import { z } from "zod";
 import { useState } from "react";
 
 // ── Zod schema ────────────────────────────────────────────────────────────────
-const contactSchema = z.object({
-  full_name: z
-    .string()
-    .min(2, "Full name must be at least 2 characters")
-    .max(60, "Full name is too long"),
-  email: z.string().email("Please enter a valid email address"),
-  have_account: z.boolean(),
-  description: z
-    .string()
-    .min(20, "Please describe your issue in at least 20 characters")
-    .max(1000, "Description is too long"),
-});
+const resetSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Must contain at least one uppercase letter")
+      .regex(/[0-9]/, "Must contain at least one number"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 // ── Floating dot ──────────────────────────────────────────────────────────────
 const Dot = ({ delay, x, y }: { delay: number; x: string; y: string }) => (
@@ -40,39 +43,78 @@ const Dot = ({ delay, x, y }: { delay: number; x: string; y: string }) => (
   />
 );
 
-const DOTS = Array.from({ length: 26 }, (_, i) => ({
+const DOTS = Array.from({ length: 24 }, (_, i) => ({
   delay: (i * 0.37) % 3,
   x: `${(i * 13 + 7) % 100}%`,
   y: `${(i * 17 + 5) % 100}%`,
 }));
 
+// ── Password strength indicator ───────────────────────────────────────────────
+const strengthChecks = [
+  { label: "At least 8 characters", test: (v: string) => v.length >= 8 },
+  { label: "One uppercase letter", test: (v: string) => /[A-Z]/.test(v) },
+  { label: "One number", test: (v: string) => /[0-9]/.test(v) },
+];
+
+const PasswordStrength = ({ password }: { password: string }) => {
+  if (!password) return null;
+  return (
+    <div className="flex flex-col gap-1.5 mb-4 ml-1">
+      {strengthChecks.map((check) => {
+        const passed = check.test(password);
+        return (
+          <div key={check.label} className="flex items-center gap-2">
+            {passed ? (
+              <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--theme-primary-raw)" }} />
+            ) : (
+              <XCircle className="w-3.5 h-3.5 flex-shrink-0 text-red-400" />
+            )}
+            <span
+              className="text-xs"
+              style={{ color: passed ? "var(--theme-primary-raw)" : "#6b8a7a" }}
+            >
+              {check.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 // ── Page ──────────────────────────────────────────────────────────────────────
-const ContactUsPage = () => {
-  const [contactApi, { isLoading }] = useContactUsMutation();
-  const [submitted, setSubmitted] = useState(false);
+// Route: /reset-password/[token]  — token is read from URL params automatically
+const ResetPasswordPage = () => {
+  const { token } = useParams<{ token: string }>();
+  const [resetPassword, { isLoading }] = useResetPasswordMutation();
+  const [success, setSuccess] = useState(false);
+  const router = useRouter();
 
   const formik = useFormik({
-    initialValues: {
-      full_name: "",
-      email: "",
-      have_account: false,
-      description: "",
-    },
-    validationSchema: toFormikValidationSchema(contactSchema),
+    initialValues: { newPassword: "", confirmPassword: "" },
+    validationSchema: toFormikValidationSchema(resetSchema),
     onSubmit: async (values) => {
+      if (!token) {
+        toast.error("Invalid reset link. Please request a new one.");
+        return;
+      }
       try {
-        const response = await contactApi(values).unwrap();
-        toast.success(response?.message || "Message sent! We'll get back to you soon.");
-        setSubmitted(true);
-      } catch (exception: any) {
-        toast.error(exception?.data?.message || "Something went wrong. Please try again.");
+        const response = await resetPassword({
+          newPassword: values.newPassword,
+          token: token as string,
+        }).unwrap();
+        toast.success(response?.message || "Password reset successfully!");
+        setSuccess(true);
+        setTimeout(() => router.replace("/login"), 3000);
+      } catch (error: any) {
+        toast.error(error?.data?.message || "Something went wrong. Please try again.");
       }
     },
   });
 
   return (
     <div
-      className="min-h-screen relative flex items-center justify-center overflow-hidden py-12"
+      className="min-h-screen relative flex items-center justify-center overflow-hidden"
       style={{ background: "#080e0a" }}
     >
       {/* ── Ambient glow ──────────────────────────────────────────────── */}
@@ -104,7 +146,7 @@ const ContactUsPage = () => {
         initial={{ opacity: 0, y: 32, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.55, ease: "easeOut" }}
-        className="relative z-10 w-full max-w-lg mx-4"
+        className="relative z-10 w-full max-w-md mx-4"
       >
         <div
           className="rounded-3xl overflow-hidden"
@@ -127,13 +169,13 @@ const ContactUsPage = () => {
 
           <div className="px-8 py-10">
             <AnimatePresence mode="wait">
-              {submitted ? (
+              {success ? (
                 /* ── Success state ──────────────────────────────────────── */
                 <motion.div
                   key="success"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="flex flex-col items-center text-center py-8"
+                  className="flex flex-col items-center text-center py-6"
                 >
                   <motion.div
                     initial={{ scale: 0 }}
@@ -141,17 +183,19 @@ const ContactUsPage = () => {
                     transition={{ type: "spring", stiffness: 260, delay: 0.1 }}
                     className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
                     style={{
-                      background:
-                        "linear-gradient(135deg, color-mix(in srgb, var(--theme-primary-raw) 20%, transparent), color-mix(in srgb, var(--theme-primary-raw) 8%, transparent))",
-                      border: "1px solid color-mix(in srgb, var(--theme-primary-raw) 30%, transparent)",
-                      boxShadow: "0 0 32px color-mix(in srgb, var(--theme-primary-raw) 16%, transparent)",
+                      background: "color-mix(in srgb, var(--theme-primary-raw) 12%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--theme-primary-raw) 28%, transparent)",
+                      boxShadow: "0 0 32px color-mix(in srgb, var(--theme-primary-raw) 14%, transparent)",
                     }}
                   >
                     <CheckCircle2 className="w-9 h-9" style={{ color: "var(--theme-primary-raw)" }} />
                   </motion.div>
-                  <h2 className="text-2xl font-bold text-white mb-2">Message Received!</h2>
-                  <p className="text-sm" style={{ color: "#6b8a7a" }}>
-                    Thank you for reaching out. Our team will get back to you within 24 hours.
+                  <h2 className="text-2xl font-bold text-white mb-2">Password Updated!</h2>
+                  <p className="text-sm mb-1" style={{ color: "#6b8a7a" }}>
+                    Your password has been reset successfully.
+                  </p>
+                  <p className="text-sm" style={{ color: "var(--theme-primary-raw)" }}>
+                    Redirecting you to sign in…
                   </p>
                 </motion.div>
               ) : (
@@ -171,7 +215,7 @@ const ContactUsPage = () => {
                         boxShadow: "0 0 20px color-mix(in srgb, var(--theme-primary-raw) 12%, transparent)",
                       }}
                     >
-                      <Mail className="w-5 h-5" style={{ color: "var(--theme-primary-raw)" }} />
+                      <Zap className="w-5 h-5" style={{ color: "var(--theme-primary-raw)" }} />
                     </motion.div>
 
                     <span
@@ -186,117 +230,41 @@ const ContactUsPage = () => {
                         className="inline-block w-1.5 h-1.5 rounded-full animate-pulse"
                         style={{ background: "var(--theme-primary-raw)" }}
                       />
-                      Get In Touch
+                      New Password
                     </span>
                   </div>
 
                   <div className="text-center mb-8">
                     <h1 className="text-2xl font-bold text-white mb-1.5 tracking-tight">
-                      Contact Us
+                      Set a new password
                     </h1>
                     <p className="text-sm" style={{ color: "#6b8a7a" }}>
-                      Have a question or need help? We&apos;re here for you.
+                      Choose a strong password to secure your account.
                     </p>
                   </div>
 
                   {/* Form */}
                   <form onSubmit={formik.handleSubmit}>
-                    {/* Full Name */}
-                    <CustomInput
+                    {/* New Password — using CustomPasswordInput HOC */}
+                    <CustomPasswordInput
                       customClass="w-full"
-                      name="full_name"
-                      placeholder="Enter your full name"
+                      name="newPassword"
+                      placeholder="Create a strong password"
                       formik={formik}
-                      label="Full Name"
+                      label="New Password"
                     />
 
-                    {/* Email */}
-                    <CustomInput
+                    {/* Live strength indicator shown beneath the field */}
+                    <PasswordStrength password={formik.values.newPassword} />
+
+                    {/* Confirm Password — using CustomPasswordInput HOC */}
+                    <CustomPasswordInput
                       customClass="w-full"
-                      name="email"
-                      placeholder="Enter your email"
+                      name="confirmPassword"
+                      placeholder="Re-enter your password"
                       formik={formik}
-                      label="Email"
+                      label="Confirm Password"
                     />
-
-                    {/* Have Account — two-button toggle (no HOC for boolean fields) */}
-                    <div className="flex flex-col items-start mb-4">
-                      <label className="text-[#929294] text-sm ml-1 mb-2">
-                        Do you have an account? <span className="text-red-600">*</span>
-                      </label>
-                      <div className="flex gap-3 w-full">
-                        {[
-                          { label: "Yes, I have one", value: true },
-                          { label: "No, I'm new here", value: false },
-                        ].map((opt) => (
-                          <button
-                            key={String(opt.value)}
-                            type="button"
-                            onClick={() => formik.setFieldValue("have_account", opt.value)}
-                            className="flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all duration-200"
-                            style={
-                              formik.values.have_account === opt.value
-                                ? {
-                                    background:
-                                      "color-mix(in srgb, var(--theme-primary-raw) 15%, transparent)",
-                                    border:
-                                      "1px solid color-mix(in srgb, var(--theme-primary-raw) 40%, transparent)",
-                                    color: "var(--theme-primary-raw)",
-                                  }
-                                : {
-                                    background: "#1C1D21",
-                                    border: "1px solid transparent",
-                                    color: "#929294",
-                                  }
-                            }
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Description — textarea (no HOC for this field type) */}
-                    <div className="flex flex-col items-start mb-4">
-                      <label className="text-[#929294] text-sm ml-1 mb-1">
-                        How can we help? <span className="text-red-600">*</span>
-                      </label>
-                      <div className="relative w-full">
-                        <textarea
-                          name="description"
-                          placeholder="Describe your issue or question in detail..."
-                          value={formik.values.description}
-                          onChange={formik.handleChange}
-                          onBlur={formik.handleBlur}
-                          rows={4}
-                          className={`w-full px-3 py-3 rounded-lg text-sm text-white placeholder:text-[#3d5a4a] resize-none bg-[#1C1D21] border focus:outline-none focus-visible:ring-0 ${
-                            formik.touched.description && formik.errors.description
-                              ? "border-red-600"
-                              : "border-transparent"
-                          }`}
-                        />
-                        <span
-                          className="absolute bottom-3 right-3 text-[10px]"
-                          style={{
-                            color: formik.values.description.length > 900 ? "#ef4444" : "#3d5a4a",
-                          }}
-                        >
-                          {formik.values.description.length}/1000
-                        </span>
-                      </div>
-                      <AnimatePresence>
-                        {formik.touched.description && formik.errors.description && (
-                          <motion.p
-                            initial={{ opacity: 0, y: -4 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -4 }}
-                            className="text-xs text-red-400 mt-1 ml-1"
-                          >
-                            {formik.errors.description as string}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
-                    </div>
 
                     {/* Submit */}
                     <motion.button
@@ -325,13 +293,19 @@ const ContactUsPage = () => {
                         />
                       )}
                       {isLoading && <LoaderCircle className="w-4 h-4 animate-spin" />}
-                      {isLoading ? "Sending…" : "Send Message"}
+                      {isLoading ? "Resetting…" : "Reset Password"}
                     </motion.button>
                   </form>
 
-                  <p className="text-center text-xs mt-6" style={{ color: "#3d5a4a" }}>
-                    We typically respond within{" "}
-                    <span style={{ color: "var(--theme-primary-raw)" }}>24 hours</span>
+                  <p className="text-center text-sm mt-6" style={{ color: "#6b8a7a" }}>
+                    Remember your password?{" "}
+                    <Link
+                      href="/login"
+                      className="font-semibold transition-colors"
+                      style={{ color: "var(--theme-primary-raw)" }}
+                    >
+                      Sign in →
+                    </Link>
                   </p>
                 </motion.div>
               )}
@@ -351,4 +325,4 @@ const ContactUsPage = () => {
   );
 };
 
-export default ContactUsPage;
+export default ResetPasswordPage;

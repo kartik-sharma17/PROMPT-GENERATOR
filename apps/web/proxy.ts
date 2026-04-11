@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const PUBLIC_ROUTES = ["/", "/login", "/signup", "/verify", "/verify-account"];
+const PUBLIC_ROUTES = ["/", "/login", "/signup", "/verify", "/verify-account","forget-password","reset-password","about-us","contact-us"];
 
 async function verifyToken(token: string) {
   try {
