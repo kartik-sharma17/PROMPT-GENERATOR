@@ -8,6 +8,7 @@ from v1.routes import (
     constrainstRouter,
     subscriptionRouter,
     planRouter,
+    contactUsRouter
 )
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -20,6 +21,7 @@ app.include_router(planRouter.router, prefix="/v1")
 app.include_router(subscriptionRouter.router, prefix="/v1")
 app.include_router(chatRouter.router, prefix="/v1")
 app.include_router(constrainstRouter.router, prefix="/v1")
+app.include_router(contactUsRouter.router, prefix="/v1")
 
 app.add_middleware(
     CORSMiddleware,
