@@ -25,7 +25,7 @@ async def login(cred: LoginInputs):
     return await Login(cred)
 
 
-@router.post("/reset-password-request")
+@router.get("/reset-password-request")
 async def resetPasswordRequest(email: str):
     return await forgetPasswordSendLink(email)
 

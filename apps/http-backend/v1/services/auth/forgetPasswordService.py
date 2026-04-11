@@ -47,6 +47,8 @@ async def forgetPasswordSendLink(email: str):
                 message="Something went wrong while sending email, please try again",
             )
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"this is a issue {str(e)}")
         return response(
@@ -55,11 +57,13 @@ async def forgetPasswordSendLink(email: str):
             message="Something went wrong while creating a new account, please try again",
         )
 
+
 async def forgetPassword(data: changePasswordSchema):
     try:
         db = getDB()
 
-        userEmail = VerifyToken(data.token).data.sub
+        decoded = await VerifyToken(data.token)
+        userEmail = decoded.get("data", {}).get("sub")
 
         if userEmail is None:
             raise HTTPException(
@@ -85,18 +89,19 @@ async def forgetPassword(data: changePasswordSchema):
 
         hashed_password = HashPassword(data.newPassword)
 
-        existUser = await db["users"].update_one(
+        await db["users"].update_one(
             {"email": userEmail}, {"$set": {"password": hashed_password}}
         )
 
         return response(
-            message=f"hey {existUser}, your password is successfully changed"
+            message=f"hey {existUser.get("full_name")}, your password is successfully changed"
         )
-
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"this is a issue {str(e)}")
         return response(
             status=False,
             code=500,
-            message="Something went wrong while creating a new account, please try again",
+            message="Something went wrong, please try again",
         )

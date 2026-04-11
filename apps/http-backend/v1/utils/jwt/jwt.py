@@ -34,7 +34,7 @@ async def VerifyToken(token):
             status_code=500,
             detail={
                 "status": False,
-                "message": "invalid Token, please login again",
+                "message": "invalid Token, please try again",
                 "data": None,
             },
         )
