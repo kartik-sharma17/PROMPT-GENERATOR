@@ -1,4 +1,5 @@
 from v1.model.userModel import User
+from fastapi import HTTPException
 from v1.db.ConnectDB import getDB
 from v1.utils.response import response
 from v1.utils.passwordHashing.passwordHashing import HashPassword
@@ -21,17 +22,17 @@ async def RegisterUser(user: registerUser):
             else:
                 hashed_password = HashPassword(user.password)
                 await db["users"].update_one(
-                {"email": user.email},
-                {
-                    "$set": {
-                        "full_name": user.full_name,
-                        "password": hashed_password,
-                        "role": user.role,
-                        "avatar": user.avatar,
-                        "phone": user.phone,
-                    }
-                },
-            )
+                    {"email": user.email},
+                    {
+                        "$set": {
+                            "full_name": user.full_name,
+                            "password": hashed_password,
+                            "role": user.role,
+                            "avatar": user.avatar,
+                            "phone": user.phone,
+                        }
+                    },
+                )
                 verificationToken = await GenerateEmailVerifyToken(user.email)
                 sendMail = await SendVerificationEmail(
                     email=user.email, name=user.full_name, token=verificationToken
@@ -47,7 +48,6 @@ async def RegisterUser(user: registerUser):
                         message="Something went wrong while sending email, please try again",
                     )
 
-
         hashed_password = HashPassword(user.password)
         new_user = User(
             full_name=user.full_name,
@@ -55,9 +55,9 @@ async def RegisterUser(user: registerUser):
             password=hashed_password,
             role=user.role,
             avatar=user.avatar,
-            phone= user.phone,
+            phone=user.phone,
         )
-        await db["users"].insert_one(new_user.dict(by_alias=True,exclude={"id"}))
+        await db["users"].insert_one(new_user.dict(by_alias=True, exclude={"id"}))
 
         verificationToken = await GenerateEmailVerifyToken(user.email)
         print("this is a verification token", verificationToken)
@@ -81,4 +81,54 @@ async def RegisterUser(user: registerUser):
             status=False,
             code=500,
             message="Something went wrong while creating a new account, please try again",
+        )
+
+
+async def ResendVerificationLink(email: str):
+    try:
+        db = getDB()
+        existUser = await db["users"].find_one({"email": email})
+        if existUser is None:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "status": False,
+                    "message": "User not found with this email Id",
+                    "data": None,
+                },
+            )
+
+        if existUser.get("is_verified"):
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "status": False,
+                    "message": "Account already verified, please login",
+                    "data": None,
+                },
+            )
+
+        verificationToken = await GenerateEmailVerifyToken(existUser.get("email"))
+
+        sendMail = await SendVerificationEmail(
+            email=existUser.get("email"), name=existUser.get("full_name"), token=verificationToken
+        )
+
+        if sendMail:
+            return response(
+                message="Verication link is successfully sended to your email ID"
+            )
+        else:
+            return response(
+                status=False,
+                code=500,
+                message="Something went wrong while sending email, please try again",
+            )
+
+    except Exception as e:
+        print(f"this is a issue {str(e)}")
+        return response(
+            status=False,
+            code=500,
+            message="Something went wrong, please try again",
         )

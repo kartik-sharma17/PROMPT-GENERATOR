@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from v1.services.auth.registerUser import RegisterUser
+from v1.services.auth.registerUser import RegisterUser, ResendVerificationLink
 from v1.services.auth.verifyEmailToken import VerifyEmailTokenService
 from v1.services.auth.login import Login
 from v1.model.loginModel import LoginInputs
@@ -33,3 +33,8 @@ async def resetPasswordRequest(email: str):
 @router.post("/reset-password")
 async def resetPassword(data: changePasswordSchema):
     return await forgetPassword(data)
+
+
+@router.post("/resend-verification")
+async def resendVerificationLink(email: str):
+    return await ResendVerificationLink(email)
