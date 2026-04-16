@@ -7,6 +7,7 @@ class historyModel(BaseModel):
     userId: str
     title: str
     projectId: Optional[str] = None
+    modelId: Optional[str] = None
     constraints: Optional[List[str]] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

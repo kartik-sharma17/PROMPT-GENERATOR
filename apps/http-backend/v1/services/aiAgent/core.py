@@ -19,6 +19,8 @@ async def chatWithAgent(history: dict):
             historyId = history.get("historyId")
             projectId = history.get("projectId")
             constraints = history.get("constraints")
+            modelId =  history.get("modelId")
+            modelName =  history.get("modelName")
 
             if not userId:
                 return response(
@@ -105,11 +107,11 @@ async def chatWithAgent(history: dict):
                         {"_id": ObjectId(projectId)}
                     )
                     if projectDetails is None:
-                        return {
-                            "message": "Project not found, please try again",
-                            "code": 500,
-                            "status": False,
-                        }
+                        return response(
+                                message="Project not found, please try again",
+                                code=500,
+                                status= False,
+                            )
 
                     projectPrompt = f"""
                         Use the following project details when generate prompt.
@@ -120,6 +122,28 @@ async def chatWithAgent(history: dict):
                     """
                     chat_messages.append(SystemMessage(content=projectPrompt))
 
+                if modelId:
+                    modelDetails = await db["aiModel"].find_one(
+                        {"_id": ObjectId(modelId)}
+                    )
+                    if modelDetails is None:
+                        return response(
+                            message="AI Model not found, please try again",
+                            code=500,
+                            status= False,
+                        )
+
+                    aiModelPrompt = f"""
+                        Generate the prompt for {modelDetails.get("name")}
+                    """
+                    chat_messages.append(SystemMessage(content=aiModelPrompt))
+
+                if modelName:
+                    aiModelPrompt = f"""
+                        Generate the prompt for {modelName}
+                    """
+                    chat_messages.append(SystemMessage(content=aiModelPrompt))
+
                 if constraints:
                     constraint_ids = [ObjectId(id) for id in constraints]
                     constraintsDetails = (
@@ -127,6 +151,13 @@ async def chatWithAgent(history: dict):
                         .find({"_id": {"$in": constraint_ids}})
                         .to_list(length=None)
                     )
+
+                    if constraintsDetails is None:
+                        return response(
+                                message="Constraints not found, please try again",
+                                code=500,
+                                status= False,
+                            )
 
                     constraintDescription = "\n".join(
                         f"- {constraint.get('promptDescription')}"
@@ -139,8 +170,7 @@ async def chatWithAgent(history: dict):
                     """
 
                     chat_messages.append(SystemMessage(content=constraintsPrompt))
-
-                incrementUsage(userId)
+                
 
             messages.reverse()
 

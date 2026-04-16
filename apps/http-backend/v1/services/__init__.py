@@ -2,3 +2,4 @@ from .subscriptionService import subscribe, verifyPaymentAndSubscribe, getUserSu
 from .planService import planService
 from .auth.forgetPasswordService import forgetPasswordSendLink, forgetPassword
 from .contactUsService import constactService
+from .aiModelService import createAiModel, getAiModel

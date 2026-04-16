@@ -8,6 +8,8 @@ class historySchema(BaseModel):
     historyId: Optional[str] = None
     projectId: Optional[str] = None
     constraints: Optional[List[str]] = []
+    modelId: Optional[str] = None
+    modelName: Optional[str] = None
     role: Literal["user", "assistant"]
     continueChat: bool = False
 
@@ -16,6 +18,7 @@ class historyResponseSchema(BaseModel):
     title: str
     updatedAt: str
     projectId: Optional[str] = None
+    modelId: Optional[str] = None
     constraints: Optional[List[str]] = []
 
 class messagesResponseSchema(BaseModel):
