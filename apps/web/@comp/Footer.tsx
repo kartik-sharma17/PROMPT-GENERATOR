@@ -29,9 +29,9 @@ const FooterLink = ({ label, href }: { label: string; href: string }) => (
 
 export const Footer = () => {
   return (
-    <footer className="relative pt-0 pb-0 overflow-hidden">
+    <footer className="relative pt-0 pb-0 overflow-hidden bg-gradient-to-b from-[#0a100a] to-[#0a100a]">
       {/* Main footer content */}
-      <div className="relative max-w-7xl mx-auto bg-gradient-to-b from-[#0a100a] to-[#0a100a]">
+      <div className="relative max-w-7xl mx-auto">
         {/* Logo + branding area */}
         <div className="container pt-16 pb-12">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">

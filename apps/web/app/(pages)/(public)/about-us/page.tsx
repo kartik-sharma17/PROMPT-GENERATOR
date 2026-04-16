@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useRef } from "react";
 import Link from "next/link";
+import { Footer, Navbar } from "@/@comp";
 
 // ── Floating dot ──────────────────────────────────────────────────────────────
 const Dot = ({ delay, x, y }: { delay: number; x: string; y: string }) => (
@@ -193,6 +194,9 @@ const ModelPill = ({ name, delay = 0 }: { name: string; delay?: number }) => (
 // ── Page ──────────────────────────────────────────────────────────────────────
 const AboutPage = () => {
   return (
+    <>
+    <Navbar/>
+    
     <div className="min-h-screen relative overflow-x-hidden" style={{ background: "#080e0a" }}>
       {/* ── Floating dots ───────────────────────────────────────────────── */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -600,6 +604,9 @@ const AboutPage = () => {
         </Reveal>
       </section>
     </div>
+
+    <Footer/>
+    </>
   );
 };
 

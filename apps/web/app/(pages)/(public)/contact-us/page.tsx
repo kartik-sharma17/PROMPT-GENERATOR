@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 import { z } from "zod";
 import { useState } from "react";
+import { Footer, Navbar } from "@/@comp";
 
 // ── Zod schema ────────────────────────────────────────────────────────────────
 const contactSchema = z.object({
@@ -71,6 +72,8 @@ const ContactUsPage = () => {
   });
 
   return (
+    <>
+    <Navbar/>
     <div
       className="min-h-screen relative flex items-center justify-center overflow-hidden py-12"
       style={{ background: "#080e0a" }}
@@ -348,6 +351,8 @@ const ContactUsPage = () => {
         />
       </motion.div>
     </div>
+    <Footer/>
+    </>
   );
 };
 
