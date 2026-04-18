@@ -33,6 +33,7 @@ async def manageHistory(
             }
 
         projectId = body.projectId if body.projectId else None
+        modelId = body.modelId if body.modelId else None
 
         if body.historyId:
 
@@ -52,6 +53,13 @@ async def manageHistory(
                     await db["historyModel"].update_one(
                         {"_id": ObjectId(body.historyId)},
                         {"$set": {"projectId": projectId}},
+                    )
+
+            if modelId:
+                if modelId != existingHistory.get("modelId"):
+                    await db["historyModel"].update_one(
+                        {"_id": ObjectId(body.historyId)},
+                        {"$set": {"modelId": modelId}},
                     )
 
             constraints = body.constraints
@@ -80,6 +88,8 @@ async def manageHistory(
                 "status": True,
                 "historyId": body.historyId,
                 "current_user": current_user,
+                "modelId": body.modelId if body.modelId else None,
+                "modelName": body.modelName if body.modelName else None,
                 "content": body.content,
                 "projectId": projectId if projectId else None,
                 "constraints": body.constraints if body.constraints else None,
@@ -93,6 +103,7 @@ async def manageHistory(
                 userId=userId,
                 title=title,
                 projectId=body.projectId if projectId else None,
+                modelId= body.modelId if modelId else None,
                 constraints=body.constraints if len(body.constraints) > 0 else None,
             )
 
@@ -112,6 +123,8 @@ async def manageHistory(
                 "historyId": str(createdHistory.inserted_id),
                 "current_user": current_user,
                 "content": body.content,
+                "modelId": body.modelId if body.modelId else None,
+                "modelName": body.modelName if body.modelName else None,
                 "projectId": projectId if projectId else None,
                 "constraints": body.constraints if body.constraints else None,
                 "continueChat": body.continueChat,

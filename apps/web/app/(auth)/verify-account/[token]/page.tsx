@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { useDispatch } from "react-redux"
 import { setCredentials } from "@/reduxConfig/slice/authSlice"
 import { LoaderCircle, CheckCircle2, XCircle } from "lucide-react"
+import Cookies from "js-cookie";
 
 const page = () => {
     const [timeLeft, setTimeLeft] = useState(5)
@@ -32,10 +33,14 @@ const page = () => {
     useEffect(() => {
         if (isSuccess) {
             toast.success(data?.message || "Account Verified Successfully")
-            dispatch(setCredentials({
-                user: data?.data,
-                token: data?.data?.token
-            }))
+            dispatch(
+                setCredentials({
+                    user: data?.data,
+                    token: data?.data?.token,
+                })
+            );
+
+            Cookies.set("token", data?.data?.token, { expires: 7, path: "/" });
         }
         if (isError) {
             toast.error((error as any)?.data?.message || "Something went wrong, please try again")
@@ -50,7 +55,10 @@ const page = () => {
             {/* Ambient glow */}
             <div
                 className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] rounded-full blur-[120px] pointer-events-none"
-                style={{ background: "rgba(99,247,168,0.06)", zIndex: 0 }}
+                style={{
+                    background: "color-mix(in srgb, var(--theme-primary-raw) 6%, transparent)",
+                    zIndex: 0,
+                }}
             />
 
             <div className="relative z-10 flex flex-col items-center text-center px-6">
@@ -58,9 +66,18 @@ const page = () => {
                     <>
                         <LoaderCircle
                             className="animate-spin w-16 h-16 mb-6"
-                            style={{ color: "#63f7a8" }}
+                            style={{ color: "var(--theme-primary-raw)" }}
                         />
-                        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-500 bg-clip-text text-transparent">
+                        <h1
+                            className="text-4xl md:text-5xl font-bold mb-0"
+                            style={{
+                                background:
+                                    "linear-gradient(to right, var(--theme-primary-raw), color-mix(in srgb, var(--theme-primary-raw) 50%, white))",
+                                WebkitBackgroundClip: "text",
+                                WebkitTextFillColor: "transparent",
+                                backgroundClip: "text",
+                            }}
+                        >
                             Verifying Your Account
                         </h1>
                         <p className="text-[#929294] text-base mt-3">
@@ -74,13 +91,25 @@ const page = () => {
                         <div
                             className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
                             style={{
-                                background: "rgba(99,247,168,0.1)",
-                                border: "1px solid rgba(99,247,168,0.25)",
+                                background: "color-mix(in srgb, var(--theme-primary-raw) 10%, transparent)",
+                                border: "1px solid color-mix(in srgb, var(--theme-primary-raw) 25%, transparent)",
                             }}
                         >
-                            <CheckCircle2 className="w-10 h-10" style={{ color: "#63f7a8" }} />
+                            <CheckCircle2
+                                className="w-10 h-10"
+                                style={{ color: "var(--theme-primary-raw)" }}
+                            />
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-500 bg-clip-text text-transparent mb-3">
+                        <h1
+                            className="text-4xl md:text-5xl font-bold mb-3"
+                            style={{
+                                background:
+                                    "linear-gradient(to right, var(--theme-primary-raw), color-mix(in srgb, var(--theme-primary-raw) 50%, white))",
+                                WebkitBackgroundClip: "text",
+                                WebkitTextFillColor: "transparent",
+                                backgroundClip: "text",
+                            }}
+                        >
                             Account Verified!
                         </h1>
                         <p className="text-[#929294] text-base mb-2">
@@ -88,7 +117,7 @@ const page = () => {
                         </p>
                         <p
                             className="text-sm font-medium"
-                            style={{ color: "#63f7a8" }}
+                            style={{ color: "var(--theme-primary-raw)" }}
                         >
                             Redirecting to plans in {timeLeft}s…
                         </p>
@@ -116,8 +145,10 @@ const page = () => {
                             onClick={() => route.replace("/signup")}
                             className="px-8 py-3 rounded-xl text-black text-sm font-semibold transition-all hover:scale-[1.02]"
                             style={{
-                                background: "linear-gradient(to right, #34d399, #22d3ee)",
-                                boxShadow: "0 0 20px rgba(99,247,168,0.25)",
+                                background:
+                                    "linear-gradient(to right, var(--theme-primary-raw), color-mix(in srgb, var(--theme-primary-raw) 50%, white))",
+                                boxShadow:
+                                    "0 0 20px color-mix(in srgb, var(--theme-primary-raw) 25%, transparent)",
                             }}
                         >
                             Try Again

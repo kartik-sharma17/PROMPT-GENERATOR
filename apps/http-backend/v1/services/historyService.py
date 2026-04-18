@@ -94,6 +94,9 @@ async def getHistory(current_user):
                 projectId=(
                     str(history.get("projectId")) if history.get("projectId") else None
                 ),
+                modelId=(
+                    str(history.get("modelId")) if history.get("modelId") else None
+                ),
                 constraints=(
                     history.get("constraints") if history.get("constraints") else None
                 ),

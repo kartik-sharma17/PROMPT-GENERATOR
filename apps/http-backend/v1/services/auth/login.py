@@ -2,6 +2,8 @@ from v1.db.ConnectDB import getDB
 from v1.utils.response import response
 from v1.utils.passwordHashing.passwordHashing import VerifyPassword
 from v1.utils.jwt.jwt import GenerateToken
+from v1.services import getUserSubscription
+from v1.schema import getSubscriptionSchema
 
 
 async def Login(cred):
@@ -26,6 +28,13 @@ async def Login(cred):
                 status=False,
             )
 
+        if user.get("is_verified") is False:
+            return response(
+                message="No account associate with this email ID, please check your email ID or sign up",
+                code=404,
+                status=False,
+            )
+
         if VerifyPassword(password, user["password"]):
             token = GenerateToken(
                 data={
@@ -34,12 +43,30 @@ async def Login(cred):
                     "userId": str(user["_id"]),
                 }
             )
+
+            subscription = await getUserSubscription(str(user["_id"]))
+
+            if subscription["status"]:
+                subscriptionDetails = getSubscriptionSchema(
+                    planId=subscription["subscription"].get("planId"),
+                    planName=subscription["subscription"].get("planName"),
+                    planPrice=subscription["subscription"].get("planPrice"),
+                    planDuration=subscription["subscription"].get("planDuration"),
+                    planDailyLimit=subscription["subscription"].get("plandailyLimit"),
+                    startDate=subscription["subscription"].get("startDate"),
+                    endDate=subscription["subscription"].get("endDate"),
+                    isActive=True,
+                ).dict()
+            else:
+                subscriptionDetails = getSubscriptionSchema(isActive=False).dict()
+
             return response(
                 message="Login Successfully",
                 data={
                     "token": token,
                     "name": user["full_name"],
                     "email": user["email"],
+                    "subscriptionDetails": subscriptionDetails,
                     "last_login": user["last_login"],
                 },
             )

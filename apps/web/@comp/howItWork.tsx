@@ -4,6 +4,7 @@ import { AIModelCard } from './AIModelCard'
 import { TypingInput } from './TypingInput'
 import { PromptOutput } from './PromptOutput'
 import { ArrowRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface Step {
   number: string
@@ -40,7 +41,7 @@ function StepCard({ step, index }: { step: Step; index: number }) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           setTimeout(() => setIsVisible(true), index * 150)
         }
       },
@@ -98,8 +99,9 @@ function StepCard({ step, index }: { step: Step; index: number }) {
 }
 
 export function HowItWorks() {
+  const route = useRouter()
   return (
-    <section className="relative py-24 px-4 overflow-hidden">
+    <section id="howitwork" className="relative py-24 px-4 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 -z-10">
         {/* Gradient orbs */}
@@ -164,7 +166,7 @@ export function HowItWorks() {
 
         {/* CTA */}
         <div className="text-center">
-          <button className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-[#00FF88] text-black font-semibold text-lg transition-all duration-300 hover:scale-105 animate-pulse-glow">
+          <button onClick={()=>{route.push("/generate")}} className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-[#00FF88] text-black font-semibold text-lg transition-all duration-300 hover:scale-105 animate-pulse-glow">
             <span>Try It Free</span>
             <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
 
