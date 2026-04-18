@@ -30,7 +30,7 @@ const buildFeatures = (plan: any, index: number): string[] => {
     `${plan.duration} month${plan.duration > 1 ? "s" : ""} access`,
     "Advanced AI optimization",
     "All AI models",
-    ...meta.extraFeatures,
+    ...meta!.extraFeatures,
   ];
 };
 

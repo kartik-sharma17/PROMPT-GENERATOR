@@ -28,15 +28,15 @@ export function TypingInput() {
 
     const timeout = setTimeout(() => {
       if (!isDeleting) {
-        if (charIndex < targetText.length) {
-          setCurrentText(targetText.slice(0, charIndex + 1))
+        if (charIndex < targetText!.length || 0) {
+          setCurrentText(targetText!.slice(0, charIndex + 1))
           setCharIndex(charIndex + 1)
         } else {
           setTimeout(() => setIsDeleting(true), 2000)
         }
       } else {
         if (charIndex > 0) {
-          setCurrentText(targetText.slice(0, charIndex - 1))
+          setCurrentText(targetText!.slice(0, charIndex - 1))
           setCharIndex(charIndex - 1)
         } else {
           setIsDeleting(false)

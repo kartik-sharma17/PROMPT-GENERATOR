@@ -11,7 +11,7 @@ interface SubscriptionDetailsType {
     isActive: boolean;
 }
 
-interface AuthState {
+export interface AuthState {
     user: any;
     token: string | null;
     isAuthenticated: boolean;
