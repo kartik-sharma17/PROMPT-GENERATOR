@@ -193,7 +193,7 @@ const LoginPage = () => {
                 />
                 <div className="flex justify-end mt-2">
                   <Link
-                    href="#"
+                    href="/forget-password"
                     className="text-xs transition-colors"
                     style={{ color: "#6b8a7a" }}
                     onMouseOver={(e) =>

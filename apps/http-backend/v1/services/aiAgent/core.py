@@ -6,6 +6,11 @@ from v1.model import messageModel
 from datetime import datetime
 from bson import ObjectId
 from v1.services.subscriptionService import incrementUsage
+import logging
+
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 
 
 async def chatWithAgent(history: dict):
@@ -121,6 +126,8 @@ async def chatWithAgent(history: dict):
                         Technologies Used: {projectDetails.get("technologiesUsed", "Not defined")}
                     """
                     chat_messages.append(SystemMessage(content=projectPrompt))
+
+                    log.info(f"{projectDetails.get('projectName')}project included")
 
                 if modelId:
                     modelDetails = await db["aiModel"].find_one(

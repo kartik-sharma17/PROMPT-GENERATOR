@@ -6,7 +6,7 @@ from config import settings
 
 async def SendResetPasswordEmail(email: str, name: str, token: str):
     try:
-        verify_link = f"{settings.BASE_URL}/forget-passwrd/{token}"
+        verify_link = f"{settings.BASE_URL}/reset-password/{token}"
 
         with open("v1/utils/mailConfig/verifyResetTokenTemplate.html") as f:
             html_template = Template(f.read())

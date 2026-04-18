@@ -70,21 +70,20 @@ const SkeletonCard = () => (
     <div
         className="relative rounded-2xl p-8 animate-pulse"
         style={{
-            background: "rgba(15,27,20,0.7)",
-            border: "1px solid rgba(0,255,170,0.08)",
-            backdropFilter: "blur(16px)",
+            background: "#0d0d0d",
+            border: "1px solid #1e1e1e",
         }}
     >
-        <div className="h-7 w-24 rounded-lg mb-2" style={{ background: "rgba(255,255,255,0.06)" }} />
-        <div className="h-4 w-40 rounded mb-8" style={{ background: "rgba(255,255,255,0.04)" }} />
-        <div className="h-14 w-32 rounded-lg mb-8" style={{ background: "rgba(255,255,255,0.06)" }} />
+        <div className="h-7 w-24 rounded-lg mb-2" style={{ background: "#1a1a1a" }} />
+        <div className="h-4 w-40 rounded mb-8" style={{ background: "#141414" }} />
+        <div className="h-14 w-32 rounded-lg mb-8" style={{ background: "#1a1a1a" }} />
         {[1, 2, 3, 4].map((i) => (
             <div key={i} className="flex gap-3 mb-4">
-                <div className="w-5 h-5 rounded-full flex-shrink-0" style={{ background: "rgba(0,255,170,0.1)" }} />
-                <div className="h-4 rounded flex-1" style={{ background: "rgba(255,255,255,0.04)" }} />
+                <div className="w-5 h-5 rounded-full flex-shrink-0" style={{ background: "rgba(0,229,122,0.1)" }} />
+                <div className="h-4 rounded flex-1" style={{ background: "#141414" }} />
             </div>
         ))}
-        <div className="h-12 rounded-xl mt-8" style={{ background: "rgba(255,255,255,0.06)" }} />
+        <div className="h-12 rounded-xl mt-8" style={{ background: "#1a1a1a" }} />
     </div>
 );
 
@@ -110,7 +109,6 @@ const ChoosePlanPage = () => {
         try {
             setProcessingPlanId(plan.id);
 
-            // Step 1: Create Razorpay order
             const orderRes = await subscribe(plan.id).unwrap();
 
             if (!orderRes?.data) {
@@ -120,7 +118,6 @@ const ChoosePlanPage = () => {
 
             const { order_id, amount, currency, key } = orderRes.data;
 
-            // Step 2: Open Razorpay checkout
             const razorpay = new (window as any).Razorpay({
                 key: key,
                 amount: amount,
@@ -132,10 +129,9 @@ const ChoosePlanPage = () => {
                     name: user?.name ?? "",
                     email: user?.email ?? "",
                 },
-                theme: { color: "#00ffaa" },
+                theme: { color: "#00e57a" },
                 handler: async (response: any) => {
                     try {
-                        // Step 3: Verify payment
                         const verifyRes = await verifyPayment({
                             order_id: response.razorpay_order_id,
                             payment_id: response.razorpay_payment_id,
@@ -144,7 +140,6 @@ const ChoosePlanPage = () => {
                         }).unwrap();
 
                         if (verifyRes?.status) {
-                            // Update Redux with new subscription details
                             if (verifyRes?.data?.subscriptionDetails) {
                                 dispatch(
                                     setCredentials({
@@ -189,16 +184,13 @@ const ChoosePlanPage = () => {
     return (
         <div
             className="min-h-screen relative overflow-x-hidden"
-            style={{ background: "#080e0a" }}
+            style={{
+                background: "#0a0a0a",
+                backgroundImage: `radial-gradient(circle at 50% 0%, rgba(0,229,122,0.06) 0%, transparent 60%),
+                  radial-gradient(circle at 80% 80%, rgba(0,229,122,0.03) 0%, transparent 40%)`
+            }}
         >
-            {/* ── Background effects ──────────────────────────────────────────── */}
-            <div
-                className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] pointer-events-none"
-                style={{
-                    background: "radial-gradient(ellipse at center top, rgba(0,255,170,0.07) 0%, transparent 70%)",
-                }}
-            />
-            {/* Floating particles */}
+            {/* ── Floating particles ──────────────────────────────────────────── */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 {Array.from({ length: 18 }).map((_, i) => (
                     <motion.div
@@ -207,11 +199,11 @@ const ChoosePlanPage = () => {
                         style={{
                             width: Math.random() > 0.5 ? 3 : 2,
                             height: Math.random() > 0.5 ? 3 : 2,
-                            backgroundColor: `rgba(0,255,170,${0.1 + Math.random() * 0.2})`,
+                            backgroundColor: `rgba(0,229,122,${0.08 + Math.random() * 0.15})`,
                             top: `${Math.random() * 100}%`,
                             left: `${Math.random() * 100}%`,
                         }}
-                        animate={{ y: [-10, 10, -10], opacity: [0.2, 0.6, 0.2] }}
+                        animate={{ y: [-10, 10, -10], opacity: [0.2, 0.5, 0.2] }}
                         transition={{
                             duration: 4 + Math.random() * 4,
                             delay: Math.random() * 3,
@@ -232,7 +224,7 @@ const ChoosePlanPage = () => {
                 >
                     <Link
                         href="/"
-                        className="inline-flex items-center gap-2 text-sm text-[#7fbfb0] hover:text-[#00ffaa] transition-colors group"
+                        className="inline-flex items-center gap-2 text-sm text-[#929294] hover:text-[#00e57a] transition-colors group"
                     >
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                         Back to Home
@@ -249,20 +241,20 @@ const ChoosePlanPage = () => {
                     <div
                         className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase mb-6"
                         style={{
-                            background: "rgba(0,255,170,0.08)",
-                            border: "1px solid rgba(0,255,170,0.2)",
-                            color: "#00ffaa",
+                            background: "rgba(0,229,122,0.08)",
+                            border: "1px solid rgba(0,229,122,0.2)",
+                            color: "#00e57a",
                         }}
                     >
                         <CreditCard className="w-3.5 h-3.5" />
                         Choose Your Plan
                     </div>
 
-                    <h1 className="text-4xl md:text-6xl font-bold mb-5 text-[#ecfdf5] leading-tight">
+                    <h1 className="text-4xl md:text-6xl font-bold mb-5 text-white leading-tight">
                         Unlock Your{" "}
                         <span
                             style={{
-                                background: "linear-gradient(135deg, #00ffaa 0%, #34d399 50%, #22d3ee 100%)",
+                                background: "linear-gradient(135deg, #00e57a 0%, #34d399 60%, #22d3ee 100%)",
                                 WebkitBackgroundClip: "text",
                                 WebkitTextFillColor: "transparent",
                                 backgroundClip: "text",
@@ -271,32 +263,32 @@ const ChoosePlanPage = () => {
                             Full Potential
                         </span>
                     </h1>
-                    <p className="text-lg text-[#7fbfb0] max-w-xl mx-auto">
+                    <p className="text-lg text-[#929294] max-w-xl mx-auto">
                         Choose the plan that fits your workflow. Cancel or upgrade anytime.
                     </p>
 
                     {/* Billing toggle */}
                     <div className="flex items-center justify-center gap-4 mt-8">
-                        <span className={`text-sm transition-colors ${!isYearly ? "text-[#ecfdf5]" : "text-[#7fbfb0]"}`}>
+                        <span className={`text-sm transition-colors ${!isYearly ? "text-white" : "text-[#929294]"}`}>
                             Monthly
                         </span>
                         <motion.button
                             onClick={() => setIsYearly(!isYearly)}
                             className="relative w-14 h-8 rounded-full p-1 focus:outline-none"
-                            style={{ backgroundColor: "#15352a" }}
+                            style={{ backgroundColor: "#1a1a1a", border: "1px solid #2a2a2a" }}
                             whileTap={{ scale: 0.95 }}
                             aria-label="Toggle billing cycle"
                         >
                             <motion.div
                                 className="w-6 h-6 rounded-full"
-                                style={{ backgroundColor: "#00ffaa" }}
+                                style={{ backgroundColor: "#00e57a" }}
                                 animate={{ x: isYearly ? 24 : 0 }}
                                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                             />
                         </motion.button>
-                        <span className={`text-sm transition-colors ${isYearly ? "text-[#ecfdf5]" : "text-[#7fbfb0]"}`}>
+                        <span className={`text-sm transition-colors ${isYearly ? "text-white" : "text-[#929294]"}`}>
                             Yearly{" "}
-                            <span className="ml-1 text-xs font-semibold text-[#00ffaa]">Save 20%</span>
+                            <span className="ml-1 text-xs font-semibold text-[#00e57a]">Save 20%</span>
                         </span>
                     </div>
                 </motion.div>
@@ -326,8 +318,8 @@ const ChoosePlanPage = () => {
                         <p className="text-red-400 font-medium">Failed to load plans</p>
                         <button
                             onClick={() => refetch()}
-                            className="px-5 py-2 rounded-xl text-sm font-medium text-[#ecfdf5] transition-all hover:scale-105"
-                            style={{ background: "#15352a", border: "1px solid rgba(0,255,170,0.2)" }}
+                            className="px-5 py-2 rounded-xl text-sm font-medium text-white transition-all hover:scale-105"
+                            style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
                         >
                             Try Again
                         </button>
@@ -349,31 +341,28 @@ const ChoosePlanPage = () => {
                                     initial={{ opacity: 0, y: 50 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.15, duration: 0.6, ease: "easeOut" }}
-                                    whileHover={{ y: -10 }}
+                                    whileHover={{ y: -8 }}
                                     className="relative rounded-2xl p-8 flex flex-col"
                                     style={{
-                                        background: meta.popular
-                                            ? "rgba(0,15,8,0.85)"
-                                            : "rgba(15,27,20,0.7)",
+                                        background: meta.popular ? "#0d0d0d" : "#111111",
                                         border: meta.popular
-                                            ? "1px solid rgba(0,255,170,0.4)"
-                                            : "1px solid rgba(0,255,170,0.1)",
-                                        backdropFilter: "blur(20px)",
+                                            ? "1px solid rgba(0,229,122,0.35)"
+                                            : "1px solid #1e1e1e",
                                         boxShadow: meta.popular
-                                            ? "0 0 40px rgba(0,255,170,0.12), 0 20px 60px rgba(0,0,0,0.4)"
-                                            : "0 8px 32px rgba(0,0,0,0.3)",
+                                            ? "0 0 40px rgba(0,229,122,0.08), 0 20px 60px rgba(0,0,0,0.5)"
+                                            : "0 8px 32px rgba(0,0,0,0.4)",
                                     }}
                                 >
                                     {/* Popular badge */}
                                     {meta.popular && (
                                         <motion.div
                                             className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap"
-                                            style={{ backgroundColor: "#00ffaa", color: "#022014" }}
+                                            style={{ backgroundColor: "#00e57a", color: "#0a0a0a" }}
                                             animate={{
                                                 boxShadow: [
-                                                    "0 0 15px rgba(0,255,170,0.3)",
-                                                    "0 0 28px rgba(0,255,170,0.6)",
-                                                    "0 0 15px rgba(0,255,170,0.3)",
+                                                    "0 0 15px rgba(0,229,122,0.25)",
+                                                    "0 0 28px rgba(0,229,122,0.55)",
+                                                    "0 0 15px rgba(0,229,122,0.25)",
                                                 ],
                                             }}
                                             transition={{ duration: 2, repeat: Infinity }}
@@ -385,8 +374,8 @@ const ChoosePlanPage = () => {
 
                                     {/* Title */}
                                     <div className="mb-6">
-                                        <h3 className="text-2xl font-bold mb-2 text-[#ecfdf5]">{plan.name}</h3>
-                                        <p className="text-sm text-[#7fbfb0]">{meta.description}</p>
+                                        <h3 className="text-2xl font-bold mb-2 text-white">{plan.name}</h3>
+                                        <p className="text-sm text-[#929294]">{meta.description}</p>
                                     </div>
 
                                     {/* Price */}
@@ -398,18 +387,18 @@ const ChoosePlanPage = () => {
                                             transition={{ type: "spring", stiffness: 300, damping: 25 }}
                                             className="flex items-baseline gap-1"
                                         >
-                                            <span className="text-5xl font-bold text-[#ecfdf5]">₹{displayPrice}</span>
-                                            <span className="text-[#7fbfb0] text-sm ml-1">
+                                            <span className="text-5xl font-bold text-white">₹{displayPrice}</span>
+                                            <span className="text-[#929294] text-sm ml-1">
                                                 /{isYearly ? "year" : "month"}
                                             </span>
                                         </motion.div>
                                         {isYearly && plan.price > 0 && (
-                                            <p className="text-xs text-[#7fbfb0] mt-1">
+                                            <p className="text-xs text-[#555] mt-1">
                                                 ≈ ₹{Math.round(displayPrice / 12)}/mo · billed annually
                                             </p>
                                         )}
                                         {plan.price === 0 && (
-                                            <p className="text-xs text-[#00ffaa] mt-1 font-medium">Free forever</p>
+                                            <p className="text-xs text-[#00e57a] mt-1 font-medium">Free forever</p>
                                         )}
                                     </div>
 
@@ -421,13 +410,13 @@ const ChoosePlanPage = () => {
                                                 initial={{ opacity: 0, x: -10 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 transition={{ delay: index * 0.12 + i * 0.07 + 0.3 }}
-                                                className="flex items-center gap-3 text-sm text-[#ecfdf5]"
+                                                className="flex items-center gap-3 text-sm text-white"
                                             >
                                                 <div
                                                     className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                                                    style={{ backgroundColor: "rgba(0,255,170,0.15)" }}
+                                                    style={{ backgroundColor: "rgba(0,229,122,0.12)" }}
                                                 >
-                                                    <Check className="w-3 h-3 text-[#00ffaa]" />
+                                                    <Check className="w-3 h-3 text-[#00e57a]" />
                                                 </div>
                                                 {feature}
                                             </motion.li>
@@ -440,18 +429,18 @@ const ChoosePlanPage = () => {
                                         disabled={!!processingPlanId}
                                         whileHover={!processingPlanId ? { scale: 1.02 } : {}}
                                         whileTap={!processingPlanId ? { scale: 0.98 } : {}}
-                                        className="w-full py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                                        className="w-full py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed text-sm"
                                         style={
                                             meta.popular
                                                 ? {
-                                                    background: "linear-gradient(135deg, #00ffaa, #22d3ee)",
-                                                    color: "#022014",
-                                                    boxShadow: "0 0 24px rgba(0,255,170,0.35)",
+                                                    background: "#00e57a",
+                                                    color: "#0a0a0a",
+                                                    boxShadow: "0 0 24px rgba(0,229,122,0.25)",
                                                 }
                                                 : {
-                                                    background: "#15352a",
-                                                    color: "#ecfdf5",
-                                                    border: "1px solid rgba(0,255,170,0.2)",
+                                                    background: "#1a1a1a",
+                                                    color: "white",
+                                                    border: "1px solid #2a2a2a",
                                                 }
                                         }
                                     >
@@ -479,7 +468,7 @@ const ChoosePlanPage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.8 }}
-                        className="text-center text-xs text-[#7fbfb0] mt-12"
+                        className="text-center text-xs text-[#555] mt-12"
                     >
                         Secure payments powered by Razorpay · Cancel anytime · No hidden fees
                     </motion.p>

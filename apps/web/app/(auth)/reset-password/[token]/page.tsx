@@ -247,7 +247,7 @@ const ResetPasswordPage = () => {
                   <form onSubmit={formik.handleSubmit}>
                     {/* New Password — using CustomPasswordInput HOC */}
                     <CustomPasswordInput
-                      customClass="w-full"
+                      customClass="w-full mb-5"
                       name="newPassword"
                       placeholder="Create a strong password"
                       formik={formik}
@@ -272,7 +272,7 @@ const ResetPasswordPage = () => {
                       disabled={isLoading}
                       whileHover={!isLoading ? { scale: 1.015 } : {}}
                       whileTap={!isLoading ? { scale: 0.985 } : {}}
-                      className="relative w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mt-2 overflow-hidden transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="mt-5 relative w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mt-2 overflow-hidden transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
                       style={{
                         background:
                           "linear-gradient(135deg, var(--theme-primary-raw) 0%, color-mix(in srgb, var(--theme-primary-raw) 50%, white) 100%)",

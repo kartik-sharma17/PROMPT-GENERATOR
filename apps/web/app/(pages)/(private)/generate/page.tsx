@@ -5,6 +5,7 @@ import { useChatMutation } from "@/reduxConfig/service/chatService"
 import { useDeleteHistoryMutation, useGetHistoryQuery, useGetMessagesMutation } from "@/reduxConfig/service/historyService"
 import { useCreateProjectMutation, useDeleteProjectMutation, useGetProjectQuery, useUpdateProjectMutation } from "@/reduxConfig/service/projectService"
 import { useGetConstraintsQuery, Constraint } from "@/reduxConfig/service/constraintsService"
+import { useGetAiModelsQuery, AiModel } from "@/reduxConfig/service/aiModelService"
 
 import { useFormik } from "formik"
 import {
@@ -19,6 +20,7 @@ import { useDispatch } from "react-redux"
 import { logout } from "@/reduxConfig/slice/authSlice"
 import { useRouter } from "next/navigation"
 import Cookies from "js-cookie";
+import { AiModelModal, ConstraintsModal, ProjectModal } from "@/@comp/generatePage"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -34,6 +36,7 @@ type HistoryItem = {
   updatedAt: string
   projectId?: string | null
   constraints?: string[] | null
+  modelId?: string | null
 }
 
 type ProjectData = {
@@ -75,6 +78,12 @@ const Page = () => {
   const [selectedConstraints, setSelectedConstraints] = useState<string[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
 
+  // ── AI Model state ──
+  const [selectedModelId, setSelectedModelId] = useState<string | null>(null)
+  const [selectedModelName, setSelectedModelName] = useState("")
+  const [isOtherModel, setIsOtherModel] = useState(false)
+  const [showModelModal, setShowModelModal] = useState(false)
+
   const dispatch = useDispatch();
   const route = useRouter()
 
@@ -100,10 +109,12 @@ const Page = () => {
   const [deleteHistory] = useDeleteHistoryMutation()
   const [getMessages, { isLoading: isLoadingMessages }] = useGetMessagesMutation()
   const { data: constraintsData } = useGetConstraintsQuery()
+  const { data: aiModelsData } = useGetAiModelsQuery()
 
   const projects: ProjectData[] = projectsData?.data || []
   const histories: HistoryItem[] = historyData?.data || []
   const constraints: Constraint[] = constraintsData?.data || []
+  const aiModels: AiModel[] = aiModelsData?.data || []
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -179,11 +190,19 @@ const Page = () => {
       historyId?: string
       projectId?: string
       constraints?: string[]
+      modelId?: string
+      modelName?: string
     } = { content: text, role: "user" }
 
     if (currentHistoryId) payload.historyId = currentHistoryId
     if (selectedProjectId) payload.projectId = selectedProjectId
     if (selectedConstraints.length > 0) payload.constraints = selectedConstraints
+    // AI model — only one of modelId or modelName, not both
+    if (selectedModelId) {
+      payload.modelId = selectedModelId
+    } else if (isOtherModel && selectedModelName.trim()) {
+      payload.modelName = selectedModelName.trim()
+    }
 
     try {
       const response = await chatApi(payload).unwrap()
@@ -218,17 +237,21 @@ const Page = () => {
     setActiveHistoryId(null)
     setSelectedProjectId(null)
     setSelectedConstraints([])
+    // Reset model
+    setSelectedModelId(null)
+    setSelectedModelName("")
+    setIsOtherModel(false)
     setChatScreen(false)
   }
 
   const handleLogout = () => {
-    localStorage.setItem("manualLogout", "true");  
+    localStorage.setItem("manualLogout", "true");
     dispatch(logout())
     Cookies.remove("token");
     route.push("/")
   }
 
-  /** Load messages for a history item — also restores project + constraints */
+  /** Load messages for a history item — also restores project + constraints + model */
   const handleHistoryClick = async (historyId: string) => {
     try {
       const response = await getMessages({ historyId }).unwrap()
@@ -246,11 +269,21 @@ const Page = () => {
       setActiveHistoryId(historyId)
       setChatScreen(true)
 
-      // ── Task 2: Restore project + constraints from history ──
+      // Restore project + constraints + model from history
       const historyItem = histories.find((h) => h.historyId === historyId)
       if (historyItem) {
         setSelectedProjectId(historyItem.projectId ?? null)
         setSelectedConstraints(historyItem.constraints ?? [])
+        // Task 2: auto-restore model
+        if (historyItem.modelId) {
+          setSelectedModelId(historyItem.modelId)
+          setIsOtherModel(false)
+          setSelectedModelName("")
+        } else {
+          setSelectedModelId(null)
+          setIsOtherModel(false)
+          setSelectedModelName("")
+        }
       }
     } catch (err) {
       console.log("Error fetching messages", err)
@@ -268,11 +301,22 @@ const Page = () => {
     }
   }
 
-  // ── Task 1: Toggle constraint by ID ──
+  // ── Constraint toggle ──
   const handleConstraintToggle = (id: string) => {
     setSelectedConstraints((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     )
+  }
+
+  // ── Model select (for the right-panel quick buttons) ──
+  const handleModelSelect = (modelId: string) => {
+    if (selectedModelId === modelId) {
+      setSelectedModelId(null)
+    } else {
+      setSelectedModelId(modelId)
+      setSelectedModelName("")
+      setIsOtherModel(false)
+    }
   }
 
   const handleAddProjectClick = () => {
@@ -304,6 +348,22 @@ const Page = () => {
   const CONSTRAINTS_PREVIEW_COUNT = 2
   const visibleConstraints = constraints.slice(0, CONSTRAINTS_PREVIEW_COUNT)
   const hasMoreConstraints = constraints.length > CONSTRAINTS_PREVIEW_COUNT
+
+  const MODEL_PREVIEW_COUNT = 3
+  const previewModels = aiModels.slice(0, MODEL_PREVIEW_COUNT)
+
+  // The display name of whatever model is active
+  const activeModelName = selectedModelId
+    ? (aiModels.find((m) => m.id === selectedModelId)?.name ?? null)
+    : isOtherModel && selectedModelName.trim()
+      ? selectedModelName.trim()
+      : null
+
+  // Is the "show more" button in an active/highlighted state?
+  // (either "Other" is selected, or a model beyond the first 3 is selected)
+  const isMoreActive =
+    isOtherModel ||
+    (!!selectedModelId && !previewModels.some((m) => m.id === selectedModelId))
 
   // ── Shared sub-components ──
 
@@ -338,151 +398,11 @@ const Page = () => {
     </div>
   )
 
-  // ── Project Modal ──
-  const ProjectModal = () => (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-[#111] border border-[#222] rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-white text-sm font-semibold">
-            {editingProject ? "Edit Project" : "Add Project"}
-          </h3>
-          <button
-            onClick={() => {
-              setShowProjectModal(false)
-              setEditingProject(null)
-              projectFormik.resetForm()
-            }}
-          >
-            <X className="h-4 w-4 text-[#929294] hover:text-white transition-colors" />
-          </button>
-        </div>
 
-        <div className="flex flex-col gap-3">
-          <div>
-            <label className="text-[#929294] text-xs mb-1 block">Project Name</label>
-            <input
-              className="bg-[#1a1a1a] border border-[#2a2a2a] text-white text-sm w-full p-2.5 rounded-lg focus:outline-none focus:border-[#00e57a]/50 transition-colors"
-              name="projectName"
-              value={projectFormik.values.projectName}
-              onChange={projectFormik.handleChange}
-              placeholder="Enter project name"
-            />
-          </div>
-          <div>
-            <label className="text-[#929294] text-xs mb-1 block">Description</label>
-            <textarea
-              className="bg-[#1a1a1a] border border-[#2a2a2a] text-white text-sm w-full p-2.5 rounded-lg focus:outline-none focus:border-[#00e57a]/50 transition-colors resize-none h-20"
-              name="projectDescription"
-              value={projectFormik.values.projectDescription}
-              onChange={projectFormik.handleChange}
-              placeholder="Enter project description"
-            />
-          </div>
-          <div>
-            <label className="text-[#929294] text-xs mb-1 block">
-              Technologies Used <span className="text-[#555]">(comma separated)</span>
-            </label>
-            <input
-              className="bg-[#1a1a1a] border border-[#2a2a2a] text-white text-sm w-full p-2.5 rounded-lg focus:outline-none focus:border-[#00e57a]/50 transition-colors"
-              name="technologiesUsed"
-              value={projectFormik.values.technologiesUsed}
-              onChange={projectFormik.handleChange}
-              placeholder="React, Node.js, MongoDB"
-            />
-          </div>
-          <button
-            onClick={() => projectFormik.handleSubmit()}
-            disabled={isCreatingProject || isUpdatingProject}
-            className="bg-[#00e57a] hover:bg-[#00cc6a] text-black text-sm font-semibold p-2.5 rounded-lg mt-1 disabled:opacity-50 transition-colors"
-          >
-            {isCreatingProject || isUpdatingProject
-              ? "Saving..."
-              : editingProject
-                ? "Update Project"
-                : "Create Project"}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-
-  const ConstraintsModal = () => (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-[#111] border border-[#222] rounded-xl w-full max-w-lg max-h-[70vh] flex flex-col shadow-2xl">
-        <div className="flex items-center justify-between p-5 border-b border-[#1e1e1e]">
-          <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-[#00e57a]" />
-            <h3 className="text-white text-sm font-semibold">Prompt Constraints</h3>
-            {selectedConstraints.length > 0 && (
-              <span className="bg-[#00e57a]/15 text-[#00e57a] text-[10px] font-medium px-2 py-0.5 rounded-full">
-                {selectedConstraints.length} selected
-              </span>
-            )}
-          </div>
-          <button
-            onClick={() => setShowConstraintsModal(false)}
-            className="text-[#929294] hover:text-white transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="overflow-y-auto flex-1 p-3 flex flex-col gap-2">
-          {constraints.length === 0 && (
-            <p className="text-[#555] text-xs text-center py-8">No constraints available.</p>
-          )}
-          {constraints.map((c) => {
-            const isSelected = selectedConstraints.includes(c.id)
-            return (
-              <button
-                key={c.id}
-                onClick={() => handleConstraintToggle(c.id)}
-                className={`w-full text-left p-3 rounded-lg border transition-all ${isSelected
-                  ? "bg-[#0d2018] border-[#00e57a]/40"
-                  : "bg-[#161616] border-[#1e1e1e] hover:border-[#2a2a2a]"
-                  }`}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className={`text-xs font-medium truncate ${isSelected ? "text-[#00e57a]" : "text-white"}`}>
-                      {c.name}
-                    </p>
-                    <p className="text-[#666] text-[11px] mt-0.5 leading-relaxed line-clamp-2">
-                      {c.description}
-                    </p>
-                  </div>
-                  <div className={`shrink-0 h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? "bg-[#00e57a] border-[#00e57a]" : "border-[#333]"}`}>
-                    {isSelected && (
-                      <svg className="h-3 w-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                  </div>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-
-        <div className="p-3 border-t border-[#1e1e1e] flex gap-2">
-          <button
-            onClick={() => setSelectedConstraints([])}
-            className="flex-1 text-[#929294] hover:text-white text-xs p-2 rounded-lg hover:bg-[#1a1a1a] transition-colors"
-          >
-            Clear all
-          </button>
-          <button
-            onClick={() => setShowConstraintsModal(false)}
-            className="flex-1 bg-[#00e57a] hover:bg-[#00cc6a] text-black text-xs font-semibold p-2 rounded-lg transition-colors"
-          >
-            Apply ({selectedConstraints.length})
-          </button>
-        </div>
-      </div>
-    </div>
-  )
+  // ── AI Model Modal ──
 
 
+  // ── Constraints Bar (above chat input) ──
   const ConstraintsBar = () => (
     <div className="bg-[#0d0d0d] border border-[#1e1e1e] border-b-0 gap-1.5 mx-auto flex flex-wrap w-7/10 rounded-t-xl p-2 items-center">
       <Shield className="h-3 w-3 text-[#00e57a] shrink-0" />
@@ -523,6 +443,93 @@ const Page = () => {
         <span className="ml-auto text-[10px] text-[#00e57a] font-medium">
           {selectedConstraints.length} active
         </span>
+      )}
+    </div>
+  )
+
+  // ── AI Model Section (right panel) ──
+  const AiModelSection = () => (
+    <div className="border-t border-[#1a1a1a] flex flex-col">
+      {/* Section header */}
+      <div className="h-10 flex items-center px-3 gap-2 border-b border-[#1a1a1a]">
+        <Bot className="h-3.5 w-3.5 text-[#00e57a]" />
+        <p className="text-[#929294] text-xs font-medium flex-1">AI Model</p>
+        {activeModelName && (
+          <div className="h-1.5 w-1.5 rounded-full bg-[#00e57a] animate-pulse shrink-0" />
+        )}
+      </div>
+
+      {/* 2×2 grid: up to 3 model buttons + "Show More" always 4th */}
+      <div className="p-2 grid grid-cols-2 gap-1.5">
+        {previewModels.map((model) => {
+          const isActive = selectedModelId === model.id
+          return (
+            <button
+              key={model.id}
+              onClick={() => handleModelSelect(model.id)}
+              title={model.name}
+              className={`aspect-square p-2 rounded-lg border transition-all flex flex-col items-center justify-center gap-1.5 ${isActive
+                ? "bg-[#0d2018] border-[#00e57a]/40"
+                : "bg-[#141414] border-[#1e1e1e] hover:border-[#2a2a2a]"
+                }`}
+            >
+              {isActive ? (
+                <div className="h-4 w-4 rounded-full bg-[#00e57a] flex items-center justify-center shrink-0">
+                  <svg className="h-2.5 w-2.5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              ) : (
+                <Bot className="h-3.5 w-3.5 text-[#555] shrink-0" />
+              )}
+              <span className={`text-[10px] font-medium w-full text-center truncate leading-tight px-1 ${isActive ? "text-[#00e57a]" : "text-[#929294]"}`}>
+                {model.name}
+              </span>
+            </button>
+          )
+        })}
+
+        {/* Empty placeholder slots so the "Show More" always lands in the 4th cell */}
+        {Array.from({ length: Math.max(0, MODEL_PREVIEW_COUNT - previewModels.length) }).map((_, i) => (
+          <div
+            key={`empty-${i}`}
+            className="aspect-square rounded-lg border border-[#141414] bg-[#0d0d0d]"
+          />
+        ))}
+
+        {/* Show More — always 4th button */}
+        <button
+          onClick={() => setShowModelModal(true)}
+          className={`aspect-square p-2 rounded-lg border transition-all flex flex-col items-center justify-center gap-1.5 ${isMoreActive
+            ? "bg-[#0d2018] border-[#00e57a]/40"
+            : "bg-[#141414] border-[#1e1e1e] hover:border-[#00e57a]/30"
+            }`}
+        >
+          <MoreHorizontal className={`h-3.5 w-3.5 shrink-0 ${isMoreActive ? "text-[#00e57a]" : "text-[#555]"}`} />
+          <span className={`text-[10px] font-medium text-center leading-tight ${isMoreActive ? "text-[#00e57a]" : "text-[#555]"}`}>
+            {aiModels.length > MODEL_PREVIEW_COUNT
+              ? `+${aiModels.length - MODEL_PREVIEW_COUNT} more`
+              : "More"}
+          </span>
+        </button>
+      </div>
+
+      {/* Active model chip */}
+      {activeModelName && (
+        <div className="mx-2 mb-2 px-2.5 py-1.5 rounded-lg bg-[#0d2018] border border-[#00e57a]/20 flex items-center gap-1.5">
+          <div className="h-1.5 w-1.5 rounded-full bg-[#00e57a] shrink-0" />
+          <span className="text-[#00e57a] text-[10px] truncate flex-1">{activeModelName}</span>
+          <button
+            onClick={() => {
+              setSelectedModelId(null)
+              setIsOtherModel(false)
+              setSelectedModelName("")
+            }}
+            className="shrink-0 text-[#00e57a]/50 hover:text-[#00e57a] transition-colors"
+          >
+            <X className="h-2.5 w-2.5" />
+          </button>
+        </div>
       )}
     </div>
   )
@@ -569,30 +576,6 @@ const Page = () => {
             >
               <Landmark className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> My plan
             </button>
-            {/* <button
-              onClick={() => { route.push("/my-plan") }}
-              className="text-white text-xs flex my-3 gap-2 items-center group hover:text-[#929294] transition-colors w-full text-left"
-            >
-              <Landmark className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> Settings
-            </button>
-            <button
-              onClick={() => { route.push("/my-plan") }}
-              className="text-white text-xs flex my-3 gap-2 items-center group hover:text-[#929294] transition-colors w-full text-left"
-            >
-              <Landmark className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> Profile
-            </button>
-            <button
-              onClick={() => { route.push("/my-plan") }}
-              className="text-white text-xs flex my-3 gap-2 items-center group hover:text-[#929294] transition-colors w-full text-left"
-            >
-              <Landmark className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> Search
-            </button>
-            <button
-              onClick={() => { route.push("/my-plan") }}
-              className="text-white text-xs flex my-3 gap-2 items-center group hover:text-[#929294] transition-colors w-full text-left"
-            >
-              <Landmark className="w-3.5 h-3.5 text-white group-hover:text-[#929294] transition-colors" /> Theme
-            </button> */}
           </div>
 
           <HistoryList />
@@ -628,17 +611,6 @@ const Page = () => {
                   key={index}
                   className={`flex gap-3 ${message.role === "assistant" ? "self-start" : "self-end flex-row-reverse"} max-w-[72%]`}
                 >
-                  {/* Avatar */}
-                  {/* {message.role === "assistant" ? (
-                    <div className="shrink-0 h-7 w-7 rounded-full bg-gradient-to-br from-[#00e57a]/30 to-[#00e57a]/10 border border-[#00e57a]/20 flex items-center justify-center mt-0.5">
-                      <Bot className="h-3.5 w-3.5 text-[#00e57a]" />
-                    </div>
-                  ) : (
-                    <div className="shrink-0 h-7 w-7 rounded-full bg-[#1e1e1e] border border-[#2a2a2a] flex items-center justify-center mt-0.5">
-                      <User className="h-3.5 w-3.5 text-[#929294]" />
-                    </div>
-                  )} */}
-
                   <div className="flex flex-col gap-1">
                     <pre
                       className={`px-4 whitespace-pre-wrap py-3 rounded-2xl text-sm leading-relaxed ${message.role === "assistant"
@@ -672,7 +644,6 @@ const Page = () => {
 
           {/* Input Area */}
           <div className="px-6 pb-4 pt-2">
-            {/* ── Task 1: Constraints bar ── */}
             <ConstraintsBar />
 
             <div className="bg-[#111] border border-[#1e1e1e] mx-auto w-7/10 rounded-b-xl rounded-t-none flex flex-col px-3 py-2.5 gap-2">
@@ -703,6 +674,12 @@ const Page = () => {
                       {selectedConstraints.length} constraint{selectedConstraints.length > 1 ? "s" : ""}
                     </span>
                   )}
+                  {activeModelName && (
+                    <span className="text-[10px] text-[#00e57a] bg-[#00e57a]/10 border border-[#00e57a]/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <Bot className="h-2.5 w-2.5" />
+                      {activeModelName}
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={handleSubmit}
@@ -721,12 +698,15 @@ const Page = () => {
           </div>
         </div>
 
-        {/* Right Panel — Projects */}
-        <div className="col-span-2 border-[#1a1a1a] border-l max-h-screen flex flex-col bg-[#0d0d0d]">
-          <div className="border-[#1a1a1a] border-b h-14 flex items-center px-3">
+        {/* Right Panel — Projects + AI Model */}
+        <div className="col-span-2 border-[#1a1a1a] border-l max-h-screen flex flex-col bg-[#0d0d0d] overflow-y-auto">
+          {/* Projects header */}
+          <div className="border-[#1a1a1a] border-b h-10 flex items-center px-3 sticky top-0 bg-[#0d0d0d] z-10">
             <p className="text-[#929294] text-xs font-medium">Projects</p>
           </div>
-          <div className="p-2">
+
+          {/* Add project button */}
+          <div className="p-2 border-b border-[#1a1a1a]">
             <button
               onClick={handleAddProjectClick}
               className="bg-[#1a1a1a] hover:bg-[#222] border border-[#2a2a2a] hover:border-[#00e57a]/30 w-full flex gap-2 items-center justify-center text-white p-2 rounded-lg text-xs transition-all"
@@ -735,7 +715,8 @@ const Page = () => {
             </button>
           </div>
 
-          <div className="p-2 flex flex-col gap-2 overflow-y-auto flex-1">
+          {/* Projects list — capped so AI Model section always visible */}
+          <div className="p-2 flex flex-col gap-2 overflow-y-auto max-h-[35vh]">
             {projects.map((project) => {
               const isActive = selectedProjectId === project.projectId
               return (
@@ -779,10 +760,42 @@ const Page = () => {
               )
             })}
           </div>
+
+          {/* AI Model Section */}
+          <AiModelSection />
         </div>
 
-        {showProjectModal && <ProjectModal />}
-        {showConstraintsModal && <ConstraintsModal />}
+        {showProjectModal && (
+          <ProjectModal
+            projectFormik={projectFormik}
+            editingProject={editingProject}
+            setShowProjectModal={setShowProjectModal}
+            setEditingProject={setEditingProject}
+            isCreatingProject={isCreatingProject}
+            isUpdatingProject={isUpdatingProject}
+          />
+        )}
+        {showConstraintsModal && (
+          <ConstraintsModal
+            constraints={constraints}
+            selectedConstraints={selectedConstraints}
+            setSelectedConstraints={setSelectedConstraints}
+            setShowConstraintsModal={setShowConstraintsModal}
+            handleConstraintToggle={handleConstraintToggle}
+          />
+        )}
+        {showModelModal && (
+          <AiModelModal
+            aiModels={aiModels}
+            selectedModelId={selectedModelId}
+            setSelectedModelId={setSelectedModelId}
+            isOtherModel={isOtherModel}
+            setIsOtherModel={setIsOtherModel}
+            selectedModelName={selectedModelName}
+            setSelectedModelName={setSelectedModelName}
+            setShowModelModal={setShowModelModal}
+          />
+        )}
       </div>
     )
   }
@@ -927,7 +940,7 @@ const Page = () => {
                     <MessageSquareMore className="h-3.5 w-3.5 text-[#444] shrink-0" />
                     <div className="min-w-0">
                       <span className="text-white text-xs truncate block">{item.title}</span>
-                      {(item.projectId || (item.constraints && item.constraints.length > 0)) && (
+                      {(item.projectId || (item.constraints && item.constraints.length > 0) || item.modelId) && (
                         <div className="flex items-center gap-2 mt-0.5">
                           {item.projectId && (
                             <span className="text-[#00e57a] text-[9px] bg-[#00e57a]/10 px-1.5 py-0.5 rounded-full">project</span>
@@ -935,6 +948,11 @@ const Page = () => {
                           {item.constraints && item.constraints.length > 0 && (
                             <span className="text-[#929294] text-[9px] bg-[#1a1a1a] px-1.5 py-0.5 rounded-full">
                               {item.constraints.length} constraint{item.constraints.length > 1 ? "s" : ""}
+                            </span>
+                          )}
+                          {item.modelId && (
+                            <span className="text-[#00e57a] text-[9px] bg-[#00e57a]/10 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                              <Bot className="h-2 w-2" /> model
                             </span>
                           )}
                         </div>
