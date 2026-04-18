@@ -15,7 +15,7 @@ const initialValues = {
   full_name: "",
   email: "",
   role: "user",
-  phone: "",
+  // phone: "",
   password: "",
 };
 
@@ -191,13 +191,13 @@ const SignupPage = () => {
                 label="Email"
               />
 
-              <CustomInput
+              {/* <CustomInput
                 customClass="w-full"
                 name="phone"
                 placeholder="Enter your phone number"
                 formik={formik}
                 label="Phone No."
-              />
+              /> */}
 
               <CustomPasswordInput
                 customClass="w-full"

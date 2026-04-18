@@ -111,6 +111,8 @@ const ChoosePlanPage = () => {
 
             const orderRes = await subscribe(plan.id).unwrap();
 
+            console.log(orderRes)
+
             if (!orderRes?.data) {
                 toast.error("Failed to create order. Please try again.");
                 return;

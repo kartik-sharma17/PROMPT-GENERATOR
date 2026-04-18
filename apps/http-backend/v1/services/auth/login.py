@@ -28,6 +28,13 @@ async def Login(cred):
                 status=False,
             )
 
+        if user.get("is_verified") is False:
+            return response(
+                message="No account associate with this email ID, please check your email ID or sign up",
+                code=404,
+                status=False,
+            )
+
         if VerifyPassword(password, user["password"]):
             token = GenerateToken(
                 data={

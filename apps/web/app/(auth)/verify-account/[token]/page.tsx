@@ -40,7 +40,7 @@ const page = () => {
                 })
             );
 
-            Cookies.set("token", data?.data?.token, { expires: 7, path: "/generate" });
+            Cookies.set("token", data?.data?.token, { expires: 7, path: "/" });
         }
         if (isError) {
             toast.error((error as any)?.data?.message || "Something went wrong, please try again")

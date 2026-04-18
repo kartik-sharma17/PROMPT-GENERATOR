@@ -7,4 +7,4 @@ class registerUser(BaseModel):
     password: str
     role: str
     avatar: Optional[str] = None
-    phone: Optional[str]
+    phone: Optional[str] = None

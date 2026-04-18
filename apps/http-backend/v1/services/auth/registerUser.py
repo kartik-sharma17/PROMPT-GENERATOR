@@ -29,7 +29,7 @@ async def RegisterUser(user: registerUser):
                             "password": hashed_password,
                             "role": user.role,
                             "avatar": user.avatar,
-                            "phone": user.phone,
+                            "phone": user.phone if user.phone else None,
                         }
                     },
                 )
@@ -55,7 +55,7 @@ async def RegisterUser(user: registerUser):
             password=hashed_password,
             role=user.role,
             avatar=user.avatar,
-            phone=user.phone,
+            phone=user.phone if user.phone else None,
         )
         await db["users"].insert_one(new_user.dict(by_alias=True, exclude={"id"}))
 

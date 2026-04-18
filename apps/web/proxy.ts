@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const PUBLIC_ROUTES = ["/", "/login", "/signup", "/verify", "/verify-account","forget-password","reset-password","about-us","contact-us"];
+const PUBLIC_ROUTES = ["/", "/login", "/signup", "/choose-plan", "/verify", "/verify-account", "forget-password", "reset-password", "about-us", "contact-us"];
 
 async function verifyToken(token: string) {
   try {
@@ -17,7 +17,7 @@ async function verifyToken(token: string) {
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (PUBLIC_ROUTES.includes(pathname)) {
+  if (PUBLIC_ROUTES.includes(pathname) ) {
     return NextResponse.next();
   }
 

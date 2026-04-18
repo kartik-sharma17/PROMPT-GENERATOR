@@ -9,9 +9,9 @@ export const registerSchema = z.object({
     .string()
     .email("Invalid email address"),
 
-  phone: z
-    .string()
-    .regex(/^[0-9]{10}$/, "Phone number must be 10 digits"),
+  // phone: z
+  //   .string()
+  //   .regex(/^[0-9]{10}$/, "Phone number must be 10 digits"),
 
   password: z
     .string()
