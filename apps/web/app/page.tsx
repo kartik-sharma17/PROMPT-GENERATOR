@@ -238,7 +238,7 @@ const page = () => {
               style={{ border: "1px solid hsl(var(--glow) / 0.2)" }}
             >
               <img
-                src="/assets/img/girlpic.webp"
+                src="assets/img/girlpic.webp"
                 className="w-full h-auto object-cover"
                 alt="Person using Prompter"
               />
