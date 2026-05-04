@@ -224,13 +224,13 @@ const ChoosePlanPage = () => {
                     transition={{ duration: 0.4 }}
                     className="mb-12"
                 >
-                    <Link
-                        href="/"
+                    <span
+                        onClick={() => { router.back() }}
                         className="inline-flex items-center gap-2 text-sm text-[#929294] hover:text-[#00e57a] transition-colors group"
                     >
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                         Back to Home
-                    </Link>
+                    </span>
                 </motion.div>
 
                 {/* ── Header ─────────────────────────────────────────────────────── */}

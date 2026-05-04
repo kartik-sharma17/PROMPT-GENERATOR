@@ -17,6 +17,7 @@ import {
 import { useSelector } from "react-redux";
 import Link from "next/link";
 import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface SubscriptionDetails {
@@ -195,6 +196,8 @@ const MyPlanPage = () => {
     [subscription?.startDate, subscription?.endDate]
   );
 
+  const router = useRouter()
+
   const isExpiringSoon = daysRemaining <= 7 && daysRemaining > 0;
 
   return (
@@ -238,9 +241,7 @@ const MyPlanPage = () => {
                 ((e.currentTarget as HTMLElement).style.color =
                   "var(--theme-primary-raw)")
               }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLElement).style.color = "inherit")
-              }
+              onClick={() => { router.back() }}
             >
               Back to Home
             </span>
