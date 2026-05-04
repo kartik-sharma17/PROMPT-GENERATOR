@@ -156,8 +156,8 @@ const ChoosePlanPage = () => {
                         } else {
                             toast.error(verifyRes?.message || "Payment verification failed.");
                         }
-                    } catch {
-                        toast.error("Payment verification failed. Please contact support.");
+                    } catch (err: any) {
+                        toast.error(err?.data?.detail?.message ?? "Something went wrong. Please try again.");
                     }
                 },
                 modal: {
@@ -170,7 +170,7 @@ const ChoosePlanPage = () => {
 
             razorpay.open();
         } catch (err: any) {
-            toast.error(err?.data?.message ?? "Something went wrong. Please try again.");
+            toast.error(err?.data?.detail?.message ?? "Something went wrong. Please try again.");
         } finally {
             setProcessingPlanId(null);
         }
