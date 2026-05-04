@@ -21,6 +21,7 @@ import { logout } from "@/reduxConfig/slice/authSlice"
 import { useRouter } from "next/navigation"
 import Cookies from "js-cookie";
 import { AiModelModal, ConstraintsModal, ProjectModal } from "@/@comp/generatePage"
+import { toast } from "sonner"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -149,8 +150,9 @@ const Page = () => {
           setShowProjectModal(false)
           setEditingProject(null)
           projectFormik.resetForm()
-        } catch (err) {
-          console.log("Error updating project", err)
+        } catch (err: any) {
+          toast.error(err?.data?.detail?.message || "something went wrong, please try again")
+
         }
       } else {
         const payload = {
@@ -163,8 +165,8 @@ const Page = () => {
           refetchProjects()
           setShowProjectModal(false)
           projectFormik.resetForm()
-        } catch (err) {
-          console.log("Error creating project", err)
+        } catch (err: any) {
+          toast.error(err?.data?.detail?.message || "something went wrong, please try again")
         }
       }
     },
@@ -221,8 +223,8 @@ const Page = () => {
         timeStamp: new Date().toISOString(),
       }
       setMessages((prev) => [...prev, assistantMessage])
-    } catch (exception) {
-      console.log("Something went wrong while calling the API", exception)
+    } catch (exception: any) {
+      toast.error(exception?.data?.detail?.message || "something went wrong, please try again")
     }
   }
 
@@ -285,8 +287,8 @@ const Page = () => {
           setSelectedModelName("")
         }
       }
-    } catch (err) {
-      console.log("Error fetching messages", err)
+    } catch (err: any) {
+      toast.error(err?.data?.detail?.message || "something went wrong, please try again")
     }
   }
 
@@ -339,8 +341,8 @@ const Page = () => {
     try {
       await deleteProject(projectId).unwrap()
       refetchProjects()
-    } catch (err) {
-      console.log("Error deleting project", err)
+    } catch (err: any) {
+      toast.error(err?.data?.detail?.message || "something went wrong, please try again")
     }
   }
 
