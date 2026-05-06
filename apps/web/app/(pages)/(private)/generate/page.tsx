@@ -552,7 +552,7 @@ const Page = () => {
               <div className="h-7 w-7 rounded-lg bg-[#00e57a]/15 flex items-center justify-center">
                 <Zap className="h-3.5 w-3.5 text-[#00e57a]" />
               </div>
-              <span className="text-white text-xs font-semibold">PromptGen</span>
+              <span className="text-white text-xs font-semibold">Clarix</span>
             </div>
           </div>
 
@@ -821,7 +821,7 @@ const Page = () => {
             <div className="h-7 w-7 rounded-lg bg-[#00e57a]/15 flex items-center justify-center">
               <Zap className="h-3.5 w-3.5 text-[#00e57a]" />
             </div>
-            <span className="text-white text-xs font-semibold">PromptGen</span>
+            <span className="text-white text-xs font-semibold">Clarix</span>
           </div>
         </div>
 

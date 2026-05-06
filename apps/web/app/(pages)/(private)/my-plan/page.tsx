@@ -159,7 +159,7 @@ const NoSubscription = () => (
     <h2 className="text-2xl font-bold text-white mb-3">No Active Plan</h2>
     <p className="text-sm max-w-sm mb-8" style={{ color: "#6b8a7a" }}>
       You don&apos;t have an active subscription yet. Choose a plan to unlock full
-      access to Prompter.
+      access to Clarix.
     </p>
     <Link href="/choose-plan">
       <motion.button

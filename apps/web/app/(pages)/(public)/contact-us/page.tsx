@@ -33,7 +33,7 @@ const ContactPage = () => {
     {
       icon: <Mail className="w-5 h-5" />,
       label: "Email Us",
-      value: "hello@prompter.ai",
+      value: "hello@Clarix.ai",
       sub: "We reply within 24 hours",
     },
     {
@@ -105,7 +105,7 @@ const ContactPage = () => {
 
               <img
                 src="/assets/img/girlpic.webp"
-                alt="Contact Prompter"
+                alt="Contact Clarix"
                 className="w-full h-full object-cover object-center relative z-10"
                 style={{ minHeight: "320px", maxHeight: "420px" }}
               />

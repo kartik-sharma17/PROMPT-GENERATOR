@@ -124,7 +124,7 @@ const ChoosePlanPage = () => {
                 key: key,
                 amount: amount,
                 currency: currency ?? "INR",
-                name: "Prompter",
+                name: "Clarix",
                 description: `${plan.name} Plan – ${plan.duration} month(s)`,
                 order_id: order_id,
                 prefill: {

@@ -9,7 +9,7 @@ const footerLinks = {
   ],
   Info: [
     { label: "Contact Us", href: "/contact-us" },
-    { label: "Introducing Prompter", href: "/about-us" },
+    { label: "Introducing Clarix", href: "/about-us" },
   ],
 };
 
@@ -42,7 +42,7 @@ export const Footer = () => {
               transition={{ duration: 0.6 }}
               className="text-5xl md:text-7xl font-bold tracking-tight text-[#effaf0]"
             >
-              Prompter
+              Clarix
             </motion.h2>
           </div>
         </div>
@@ -75,7 +75,7 @@ export const Footer = () => {
         <div className="container pb-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-[#253c29]/20">
             <p className="text-xs uppercase tracking-[0.15em] text-[#86a38a]">
-              © Prompter Technologies, 2026
+              © Clarix Technologies, 2026
             </p>
             <div className="flex gap-6">
               <a
