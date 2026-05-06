@@ -124,7 +124,7 @@ const ChoosePlanPage = () => {
                 key: key,
                 amount: amount,
                 currency: currency ?? "INR",
-                name: "Prompter",
+                name: "Clarix",
                 description: `${plan.name} Plan – ${plan.duration} month(s)`,
                 order_id: order_id,
                 prefill: {
@@ -156,8 +156,8 @@ const ChoosePlanPage = () => {
                         } else {
                             toast.error(verifyRes?.message || "Payment verification failed.");
                         }
-                    } catch {
-                        toast.error("Payment verification failed. Please contact support.");
+                    } catch (err: any) {
+                        toast.error(err?.data?.detail?.message ?? "Something went wrong. Please try again.");
                     }
                 },
                 modal: {
@@ -170,7 +170,7 @@ const ChoosePlanPage = () => {
 
             razorpay.open();
         } catch (err: any) {
-            toast.error(err?.data?.message ?? "Something went wrong. Please try again.");
+            toast.error(err?.data?.detail?.message ?? "Something went wrong. Please try again.");
         } finally {
             setProcessingPlanId(null);
         }
@@ -224,13 +224,13 @@ const ChoosePlanPage = () => {
                     transition={{ duration: 0.4 }}
                     className="mb-12"
                 >
-                    <Link
-                        href="/"
+                    <span
+                        onClick={() => { router.back() }}
                         className="inline-flex items-center gap-2 text-sm text-[#929294] hover:text-[#00e57a] transition-colors group"
                     >
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                         Back to Home
-                    </Link>
+                    </span>
                 </motion.div>
 
                 {/* ── Header ─────────────────────────────────────────────────────── */}

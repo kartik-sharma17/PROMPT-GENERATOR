@@ -1,13 +1,22 @@
 from datetime import datetime
-from email.policy import default
 from fastapi import Depends, HTTPException
 from .getCurrentUser import getCurrentUser
 from v1.db.ConnectDB import getDB
-from v1.services.subscriptionService import checkUsage, getUserSubscription
+from v1.services.subscriptionService import (
+    checkUsage,
+    createSubscription,
+    getUserSubscription,
+)
+from bson import ObjectId
+import logging
+
+log = logging.getLogger(__name__)
 
 
 async def subscriptionCheck(current_user: dict = Depends(getCurrentUser)):
     try:
+        db = getDB()
+
         if current_user.get("message") == "Token Expired Please Try Again":
             return {
                 "message": "Token expire please try login again",
@@ -30,29 +39,32 @@ async def subscriptionCheck(current_user: dict = Depends(getCurrentUser)):
         endDate = subscription.get("endDate")
         status = subscription.get("status")
 
-        if status != "active":
-            raise HTTPException(
-                status_code=403,
-                detail={
-                    "status": False,
-                    "message": "Your plan is not active, please subscribe to move futher",
-                    "data": None,
-                },
-            )
-
         if endDate:
             end_date_obj = datetime.fromisoformat(endDate)
             today_obj = datetime.utcnow()
 
-            if status != "active" or end_date_obj < today_obj:
-                raise HTTPException(
-                    status_code=403,
-                    detail={
-                        "status": False,
-                        "message": "Your plan is expired and not active, please subscribe to move futher",
-                        "data": None,
-                    },
+            if end_date_obj < today_obj:
+                result = await db["SubscriptionModel"].update_one(
+                    {"_id": ObjectId(subscription.get("_id")), "status": "active"},
+                    {"$set": {"status": "expired"}},
                 )
+
+                if result.modified_count == 1:
+                    free_plan = await db["planModel"].find_one({"price": 0})
+
+                    if free_plan is None:
+                        raise HTTPException(
+                            status_code=403,
+                            detail={
+                                "status": False,
+                                "message": "No free plan exist, please subscribe to paid plain to continue",
+                                "data": None,
+                            },
+                        )
+
+                    log.info("old subscription is expired, downgrading to free one")
+                    await createSubscription(userId, free_plan.get("_id"), free_plan)
+
         else:
             raise HTTPException(
                 status_code=403,

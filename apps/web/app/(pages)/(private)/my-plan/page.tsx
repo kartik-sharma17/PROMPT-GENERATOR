@@ -17,6 +17,7 @@ import {
 import { useSelector } from "react-redux";
 import Link from "next/link";
 import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface SubscriptionDetails {
@@ -158,7 +159,7 @@ const NoSubscription = () => (
     <h2 className="text-2xl font-bold text-white mb-3">No Active Plan</h2>
     <p className="text-sm max-w-sm mb-8" style={{ color: "#6b8a7a" }}>
       You don&apos;t have an active subscription yet. Choose a plan to unlock full
-      access to Prompter.
+      access to Clarix.
     </p>
     <Link href="/choose-plan">
       <motion.button
@@ -194,6 +195,8 @@ const MyPlanPage = () => {
     () => getProgressPercent(subscription?.startDate, subscription?.endDate),
     [subscription?.startDate, subscription?.endDate]
   );
+
+  const router = useRouter()
 
   const isExpiringSoon = daysRemaining <= 7 && daysRemaining > 0;
 
@@ -238,9 +241,7 @@ const MyPlanPage = () => {
                 ((e.currentTarget as HTMLElement).style.color =
                   "var(--theme-primary-raw)")
               }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLElement).style.color = "inherit")
-              }
+              onClick={() => { router.back() }}
             >
               Back to Home
             </span>

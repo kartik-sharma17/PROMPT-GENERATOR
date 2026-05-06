@@ -24,7 +24,7 @@ export const Navbar = () => {
               <Sparkles className="w-5 h-5 text-[#00f279]" />
             </div>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#effaf0] via-[#00f279] to-[#effaf0]">
-              Prompter
+              Clarix
             </span>
           </motion.a>
 

@@ -240,7 +240,7 @@ const page = () => {
               <img
                 src="assets/img/girlpic.webp"
                 className="w-full h-auto object-cover"
-                alt="Person using Prompter"
+                alt="Person using Clarix"
               />
 
               {/* floating stat pill */}
