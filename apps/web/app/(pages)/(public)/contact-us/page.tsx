@@ -33,20 +33,20 @@ const ContactPage = () => {
     {
       icon: <Mail className="w-5 h-5" />,
       label: "Email Us",
-      value: "hello@Clarix.ai",
+      value: "support.clarix@gmail.com",
       sub: "We reply within 24 hours",
     },
-    {
-      icon: <Phone className="w-5 h-5" />,
-      label: "Call Us",
-      value: "+1 (800) 123-4567",
-      sub: "Mon–Fri, 9 AM – 6 PM EST",
-    },
+    // {
+    //   icon: <Phone className="w-5 h-5" />,
+    //   label: "Call Us",
+    //   value: "+1 (800) 123-4567",
+    //   sub: "Mon–Fri, 9 AM – 6 PM EST",
+    // },
     {
       icon: <MapPin className="w-5 h-5" />,
       label: "Our Office",
-      value: "San Francisco, CA",
-      sub: "United States",
+      value: "Greater Noida West, UP",
+      sub: "India",
     },
   ]
 
@@ -158,7 +158,7 @@ const ContactPage = () => {
             </div>
 
             {/* Contact info cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {contactInfo.map((item) => (
                 <div
                   key={item.label}

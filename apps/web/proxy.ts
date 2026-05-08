@@ -17,7 +17,7 @@ async function verifyToken(token: string) {
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (PUBLIC_ROUTES.includes(pathname) || pathname.startsWith('/assets')) {
+  if (PUBLIC_ROUTES.includes(pathname) || pathname.startsWith('/assets') || pathname.startsWith('/verify-account')) {
     return NextResponse.next();
   }
 
