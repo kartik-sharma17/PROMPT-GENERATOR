@@ -29,41 +29,18 @@ interface Plan {
     price: number;
     duration: number;
     dailyLimit: number;
+    features: string[];
 }
 
-// ── Plan metadata per index position ────────────────────────────────────────
-const PLAN_META: Record<
-    number,
-    { description: string; popular: boolean; badge?: string; extraFeatures: string[] }
-> = {
-    0: {
-        description: "Perfect for getting started",
-        popular: false,
-        extraFeatures: ["Email support", "Basic analytics"],
-    },
-    1: {
-        description: "For power users and creators",
-        popular: true,
-        badge: "Best Value",
-        extraFeatures: ["Priority support", "Prompt history", "Team sharing"],
-    },
-    2: {
-        description: "For teams and organizations",
-        popular: false,
-        extraFeatures: ["Priority support", "API access", "SSO integration", "Dedicated support"],
-    },
+// ── Plan description & popular flag by name ───────────────────────────────────
+const PLAN_DESCRIPTION: Record<string, string> = {
+    "Free":           "Perfect for getting started",
+    "Pro":            "For power users and creators",
+    "Premium":        "For teams and organizations",
+    "Pro Annual":     "For power users and creators",
+    "Premium Annual": "For teams and organizations",
 };
-
-const buildFeatures = (plan: Plan, index: number): string[] => {
-    const meta = PLAN_META[index] ?? PLAN_META[0];
-    return [
-        `${plan.dailyLimit} prompts per day`,
-        `${plan.duration} month${plan.duration > 1 ? "s" : ""} access`,
-        "Advanced AI optimization",
-        "All AI models",
-        ...meta!.extraFeatures,
-    ];
-};
+const POPULAR_PLANS = new Set(["Pro", "Premium Annual"]);
 
 // ── Skeleton card ────────────────────────────────────────────────────────────
 const SkeletonCard = () => (
@@ -100,10 +77,20 @@ const ChoosePlanPage = () => {
     const [processingPlanId, setProcessingPlanId] = useState<string | null>(null);
     const [isYearly, setIsYearly] = useState(false);
 
-    const plans: Plan[] = plansData?.data ?? [];
+    const allPlans: Plan[] = plansData?.data ?? [];
 
-    const getDisplayPrice = (price: number) =>
-        isYearly ? Math.round(price * 12 * 0.8) : price;
+    // Monthly tab: free plan + plans with duration === 1
+    // Yearly tab: paid plans with duration > 1
+    const visiblePlans = isYearly
+        ? allPlans.filter((p) => p.price > 0 && p.duration > 1)
+        : allPlans.filter((p) => p.price === 0 || p.duration === 1);
+
+    const colsClass =
+        visiblePlans.length === 1
+            ? "max-w-sm mx-auto"
+            : visiblePlans.length === 2
+                ? "md:grid-cols-2 max-w-3xl mx-auto"
+                : "md:grid-cols-3 max-w-6xl mx-auto";
 
     const handleSelectPlan = async (plan: Plan) => {
         try {
@@ -183,12 +170,6 @@ const ChoosePlanPage = () => {
         }
     };
 
-    const colsClass =
-        plans.length === 1
-            ? "max-w-sm mx-auto"
-            : plans.length === 2
-                ? "md:grid-cols-2 max-w-3xl mx-auto"
-                : "md:grid-cols-3 max-w-6xl mx-auto";
 
     return (
         <>
@@ -341,12 +322,13 @@ const ChoosePlanPage = () => {
                     )}
 
                     {/* ── Plan cards ──────────────────────────────────────────────────── */}
-                    {!isLoading && !isError && plans.length > 0 && (
+                    {!isLoading && !isError && visiblePlans.length > 0 && (
                         <div className={`grid gap-8 ${colsClass}`}>
-                            {plans.map((plan: Plan, index: number) => {
-                                const meta = PLAN_META[index] ?? { description: "Great value plan", popular: false, extraFeatures: [] };
-                                const displayPrice = getDisplayPrice(plan.price);
-                                const features = buildFeatures(plan, index);
+                            {visiblePlans.map((plan: Plan, index: number) => {
+                                const isPopular = POPULAR_PLANS.has(plan.name);
+                                const description = PLAN_DESCRIPTION[plan.name] ?? "Great value plan";
+                                const isAnnual = plan.duration > 1;
+                                const perMonth = isAnnual ? Math.round(plan.price / plan.duration) : plan.price;
                                 const isProcessing = processingPlanId === plan.id;
 
                                 return (
@@ -358,17 +340,17 @@ const ChoosePlanPage = () => {
                                         whileHover={{ y: -8 }}
                                         className="relative rounded-2xl p-8 flex flex-col"
                                         style={{
-                                            background: meta.popular ? "#0d0d0d" : "#111111",
-                                            border: meta.popular
+                                            background: isPopular ? "#0d0d0d" : "#111111",
+                                            border: isPopular
                                                 ? "1px solid rgba(0,229,122,0.35)"
                                                 : "1px solid #1e1e1e",
-                                            boxShadow: meta.popular
+                                            boxShadow: isPopular
                                                 ? "0 0 40px rgba(0,229,122,0.08), 0 20px 60px rgba(0,0,0,0.5)"
                                                 : "0 8px 32px rgba(0,0,0,0.4)",
                                         }}
                                     >
                                         {/* Popular badge */}
-                                        {meta.popular && (
+                                        {isPopular && (
                                             <motion.div
                                                 className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap"
                                                 style={{ backgroundColor: "#00e57a", color: "#0a0a0a" }}
@@ -382,33 +364,33 @@ const ChoosePlanPage = () => {
                                                 transition={{ duration: 2, repeat: Infinity }}
                                             >
                                                 <Sparkles className="w-3.5 h-3.5" />
-                                                {meta.badge ?? "Most Popular"}
+                                                Best Value
                                             </motion.div>
                                         )}
 
                                         {/* Title */}
                                         <div className="mb-6">
                                             <h3 className="text-2xl font-bold mb-2 text-white">{plan.name}</h3>
-                                            <p className="text-sm text-[#929294]">{meta.description}</p>
+                                            <p className="text-sm text-[#929294]">{description}</p>
                                         </div>
 
                                         {/* Price */}
                                         <div className="mb-8">
                                             <motion.div
-                                                key={isYearly ? "yearly" : "monthly"}
+                                                key={plan.id}
                                                 initial={{ opacity: 0, y: -8 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
                                                 className="flex items-baseline gap-1"
                                             >
-                                                <span className="text-5xl font-bold text-white">₹{displayPrice}</span>
+                                                <span className="text-5xl font-bold text-white">₹{plan.price}</span>
                                                 <span className="text-[#929294] text-sm ml-1">
-                                                    /{isYearly ? "year" : "month"}
+                                                    /{isAnnual ? "year" : "month"}
                                                 </span>
                                             </motion.div>
-                                            {isYearly && plan.price > 0 && (
+                                            {isAnnual && (
                                                 <p className="text-xs text-[#555] mt-1">
-                                                    ≈ ₹{Math.round(displayPrice / 12)}/mo · billed annually
+                                                    ≈ ₹{perMonth}/mo · billed annually
                                                 </p>
                                             )}
                                             {plan.price === 0 && (
@@ -416,9 +398,9 @@ const ChoosePlanPage = () => {
                                             )}
                                         </div>
 
-                                        {/* Features */}
+                                        {/* Features — from API */}
                                         <ul className="space-y-3.5 mb-8 flex-1">
-                                            {features.map((feature: string, i: number) => (
+                                            {plan.features.map((feature: string, i: number) => (
                                                 <motion.li
                                                     key={feature}
                                                     initial={{ opacity: 0, x: -10 }}
@@ -445,7 +427,7 @@ const ChoosePlanPage = () => {
                                             whileTap={!processingPlanId ? { scale: 0.98 } : {}}
                                             className="w-full py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed text-sm"
                                             style={
-                                                meta.popular
+                                                isPopular
                                                     ? {
                                                         background: "#00e57a",
                                                         color: "#0a0a0a",
@@ -465,7 +447,7 @@ const ChoosePlanPage = () => {
                                                 </>
                                             ) : (
                                                 <>
-                                                    {meta.popular && <Zap className="w-4 h-4" />}
+                                                    {isPopular && <Zap className="w-4 h-4" />}
                                                     {plan.price === 0 ? "Start for Free" : "Subscribe Now"}
                                                 </>
                                             )}

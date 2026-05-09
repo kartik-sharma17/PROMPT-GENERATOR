@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel
 
 class getPlanSchema(BaseModel):
@@ -7,3 +7,4 @@ class getPlanSchema(BaseModel):
     price: int
     duration: int # in months
     dailyLimit: int
+    features: Optional[List[str]]

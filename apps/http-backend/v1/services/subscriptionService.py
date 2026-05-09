@@ -28,6 +28,16 @@ async def getUserSubscription(userId: str):
             {"_id": ObjectId(subscription.get("planId"))}
         )
 
+        if plan is None:
+            raise HTTPException(
+            status_code=403,
+            detail={
+                "status": False,
+                "message": "Plan not found",
+                "data": None,
+            },
+        )
+
         subscription = {
             **subscription,
             "planName": plan.get("name") if plan.get("name") else None,
@@ -43,7 +53,11 @@ async def getUserSubscription(userId: str):
             "message": "Subscription retrieved successfully",
             "subscription": subscription,
         }
+    
+    except Exception:
+        raise
     except Exception as e:
+        print(f"something went wrong while fetching the subscription, {e}")
         raise HTTPException(
             status_code=403,
             detail={
