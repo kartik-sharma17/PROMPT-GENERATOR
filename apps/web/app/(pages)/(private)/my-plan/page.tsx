@@ -14,10 +14,10 @@ import {
   ArrowLeft,
   RefreshCw,
 } from "lucide-react";
-import { useSelector } from "react-redux";
 import Link from "next/link";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useGetSubscriptionQuery } from "@/reduxConfig/service/subscriptionService";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface SubscriptionDetails {
@@ -181,11 +181,46 @@ const NoSubscription = () => (
   </motion.div>
 );
 
+// ── Skeleton loader ───────────────────────────────────────────────────────────
+const PlanSkeleton = () => (
+  <div className="animate-pulse space-y-6">
+    <div className="rounded-3xl p-8" style={{ background: "rgba(10,22,15,0.7)", border: "1px solid rgba(0,229,122,0.08)" }}>
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-6">
+        <div className="space-y-3">
+          <div className="h-6 w-20 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }} />
+          <div className="h-10 w-40 rounded-lg" style={{ background: "rgba(255,255,255,0.06)" }} />
+          <div className="h-4 w-32 rounded" style={{ background: "rgba(255,255,255,0.04)" }} />
+        </div>
+        <div className="space-y-2">
+          <div className="h-10 w-24 rounded-lg" style={{ background: "rgba(255,255,255,0.06)" }} />
+          <div className="h-4 w-16 rounded" style={{ background: "rgba(255,255,255,0.04)" }} />
+        </div>
+      </div>
+      <div className="mt-8 space-y-2">
+        <div className="h-2 w-full rounded-full" style={{ background: "rgba(255,255,255,0.06)" }} />
+        <div className="flex justify-between">
+          <div className="h-3 w-24 rounded" style={{ background: "rgba(255,255,255,0.04)" }} />
+          <div className="h-3 w-24 rounded" style={{ background: "rgba(255,255,255,0.04)" }} />
+        </div>
+      </div>
+    </div>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="rounded-2xl p-6 space-y-3" style={{ background: "rgba(10,22,15,0.7)", border: "1px solid rgba(0,229,122,0.06)" }}>
+          <div className="w-10 h-10 rounded-xl" style={{ background: "rgba(255,255,255,0.06)" }} />
+          <div className="h-3 w-20 rounded" style={{ background: "rgba(255,255,255,0.04)" }} />
+          <div className="h-6 w-14 rounded" style={{ background: "rgba(255,255,255,0.06)" }} />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 const MyPlanPage = () => {
-  const subscription: SubscriptionDetails | null = useSelector(
-    (state: any) => state.auth.subscriptionDetails
-  );
+  const { data, isLoading, isError, refetch } = useGetSubscriptionQuery({});
+
+  const subscription: SubscriptionDetails | null = data?.data ?? null;
 
   const daysRemaining = useMemo(
     () => getDaysRemaining(subscription?.endDate),
@@ -196,7 +231,7 @@ const MyPlanPage = () => {
     [subscription?.startDate, subscription?.endDate]
   );
 
-  const router = useRouter()
+  const router = useRouter();
 
   const isExpiringSoon = daysRemaining <= 7 && daysRemaining > 0;
 
@@ -272,10 +307,41 @@ const MyPlanPage = () => {
           </p>
         </motion.div>
 
+        {/* ── Loading ───────────────────────────────────────────────── */}
+        {isLoading && <PlanSkeleton />}
+
+        {/* ── Error ─────────────────────────────────────────────────── */}
+        {isError && !isLoading && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center justify-center py-20 text-center gap-4"
+          >
+            <div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center"
+              style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.18)" }}
+            >
+              <XCircle className="w-7 h-7 text-red-400" />
+            </div>
+            <p className="text-red-400 font-medium">Failed to load subscription</p>
+            <button
+              onClick={() => refetch()}
+              className="px-5 py-2 rounded-xl text-sm font-medium text-white transition-all hover:scale-105 flex items-center gap-2"
+              style={{ background: "rgba(10,22,15,0.7)", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </button>
+          </motion.div>
+        )}
+
         {/* ── No subscription ──────────────────────────────────────────── */}
-        {!subscription || !subscription.isActive ? (
+        {!isLoading && !isError && (!subscription || !subscription.isActive) ? (
           <NoSubscription />
-        ) : (
+        ) : null}
+
+        {/* ── Active subscription ───────────────────────────────────────── */}
+        {!isLoading && !isError && subscription && subscription.isActive && (
           <>
             {/* ── Active plan hero card ────────────────────────────────── */}
             <motion.div

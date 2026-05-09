@@ -24,7 +24,14 @@ export const SubscriptionApiSlice = RootApiService.injectEndpoints({
             }),
             invalidatesTags: ["Auth"]
         }),
+        getSubscription: builder.query({
+            query: () => ({
+                url: "subscribe/get-subscription",
+                method: "GET",
+            }),
+            providesTags: ["Auth"]
+        }),
     })
 })
 
-export const { useGetPlansQuery, useSubscribeMutation, useVerifyPaymentMutation } = SubscriptionApiSlice
+export const { useGetPlansQuery, useSubscribeMutation, useVerifyPaymentMutation, useGetSubscriptionQuery } = SubscriptionApiSlice
