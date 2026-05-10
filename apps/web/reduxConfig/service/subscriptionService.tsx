@@ -17,14 +17,21 @@ export const SubscriptionApiSlice = RootApiService.injectEndpoints({
             invalidatesTags: ["Auth"]
         }),
         verifyPayment: builder.mutation({
-            query: (data: { order_id: string; payment_id: string; signature: string; razorpayResponse?: object }) => ({
+            query: (data: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string; razorpayResponse?: object }) => ({
                 url: "subscribe/verify-payment",
                 method: "POST",
                 body: data,
             }),
             invalidatesTags: ["Auth"]
         }),
+        getSubscription: builder.query({
+            query: () => ({
+                url: "subscribe/get-subscription",
+                method: "GET",
+            }),
+            providesTags: ["Auth"]
+        }),
     })
 })
 
-export const { useGetPlansQuery, useSubscribeMutation, useVerifyPaymentMutation } = SubscriptionApiSlice
+export const { useGetPlansQuery, useSubscribeMutation, useVerifyPaymentMutation, useGetSubscriptionQuery } = SubscriptionApiSlice

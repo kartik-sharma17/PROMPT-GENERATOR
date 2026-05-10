@@ -20,7 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setCredentials } from "@/reduxConfig/slice/authSlice";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import Link from "next/link";
+import Script from "next/script";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface Plan {
@@ -29,41 +29,18 @@ interface Plan {
     price: number;
     duration: number;
     dailyLimit: number;
+    features: string[];
 }
 
-// ── Plan metadata per index position ────────────────────────────────────────
-const PLAN_META: Record<
-    number,
-    { description: string; popular: boolean; badge?: string; extraFeatures: string[] }
-> = {
-    0: {
-        description: "Perfect for getting started",
-        popular: false,
-        extraFeatures: ["Email support", "Basic analytics"],
-    },
-    1: {
-        description: "For power users and creators",
-        popular: true,
-        badge: "Best Value",
-        extraFeatures: ["Priority support", "Prompt history", "Team sharing"],
-    },
-    2: {
-        description: "For teams and organizations",
-        popular: false,
-        extraFeatures: ["Priority support", "API access", "SSO integration", "Dedicated support"],
-    },
+// ── Plan description & popular flag by name ───────────────────────────────────
+const PLAN_DESCRIPTION: Record<string, string> = {
+    "Free":           "Perfect for getting started",
+    "Pro":            "For power users and creators",
+    "Premium":        "For teams and organizations",
+    "Pro Annual":     "For power users and creators",
+    "Premium Annual": "For teams and organizations",
 };
-
-const buildFeatures = (plan: Plan, index: number): string[] => {
-    const meta = PLAN_META[index] ?? PLAN_META[0];
-    return [
-        `${plan.dailyLimit} prompts per day`,
-        `${plan.duration} month${plan.duration > 1 ? "s" : ""} access`,
-        "Advanced AI optimization",
-        "All AI models",
-        ...meta!.extraFeatures,
-    ];
-};
+const POPULAR_PLANS = new Set(["Pro", "Premium Annual"]);
 
 // ── Skeleton card ────────────────────────────────────────────────────────────
 const SkeletonCard = () => (
@@ -100,10 +77,20 @@ const ChoosePlanPage = () => {
     const [processingPlanId, setProcessingPlanId] = useState<string | null>(null);
     const [isYearly, setIsYearly] = useState(false);
 
-    const plans: Plan[] = plansData?.data ?? [];
+    const allPlans: Plan[] = plansData?.data ?? [];
 
-    const getDisplayPrice = (price: number) =>
-        isYearly ? Math.round(price * 12 * 0.8) : price;
+    // Monthly tab: free plan + plans with duration === 1
+    // Yearly tab: paid plans with duration > 1
+    const visiblePlans = isYearly
+        ? allPlans.filter((p) => p.price > 0 && p.duration > 1)
+        : allPlans.filter((p) => p.price === 0 || p.duration === 1);
+
+    const colsClass =
+        visiblePlans.length === 1
+            ? "max-w-sm mx-auto"
+            : visiblePlans.length === 2
+                ? "md:grid-cols-2 max-w-3xl mx-auto"
+                : "md:grid-cols-3 max-w-6xl mx-auto";
 
     const handleSelectPlan = async (plan: Plan) => {
         try {
@@ -118,15 +105,21 @@ const ChoosePlanPage = () => {
                 return;
             }
 
-            const { order_id, amount, currency, key } = orderRes.data;
+            const { id, amount, currency } = orderRes.data;
+            const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY;
+
+            if (!(window as any).Razorpay) {
+                toast.error("Razorpay failed to load.");
+                return;
+            }
 
             const razorpay = new (window as any).Razorpay({
-                key: key,
+                key: razorpayKey,
                 amount: amount,
                 currency: currency ?? "INR",
                 name: "Clarix",
                 description: `${plan.name} Plan – ${plan.duration} month(s)`,
-                order_id: order_id,
+                order_id: id,
                 prefill: {
                     name: user?.name ?? "",
                     email: user?.email ?? "",
@@ -135,9 +128,9 @@ const ChoosePlanPage = () => {
                 handler: async (response: any) => {
                     try {
                         const verifyRes = await verifyPayment({
-                            order_id: response.razorpay_order_id,
-                            payment_id: response.razorpay_payment_id,
-                            signature: response.razorpay_signature,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
                             razorpayResponse: response,
                         }).unwrap();
 
@@ -170,313 +163,315 @@ const ChoosePlanPage = () => {
 
             razorpay.open();
         } catch (err: any) {
+            console.log(err)
             toast.error(err?.data?.detail?.message ?? "Something went wrong. Please try again.");
         } finally {
             setProcessingPlanId(null);
         }
     };
 
-    const colsClass =
-        plans.length === 1
-            ? "max-w-sm mx-auto"
-            : plans.length === 2
-                ? "md:grid-cols-2 max-w-3xl mx-auto"
-                : "md:grid-cols-3 max-w-6xl mx-auto";
 
     return (
-        <div
-            className="min-h-screen relative overflow-x-hidden"
-            style={{
-                background: "#0a0a0a",
-                backgroundImage: `radial-gradient(circle at 50% 0%, rgba(0,229,122,0.06) 0%, transparent 60%),
+        <>
+            <Script
+                src="https://checkout.razorpay.com/v1/checkout.js"
+                strategy="lazyOnload"
+            />
+            <div
+                className="min-h-screen relative overflow-x-hidden"
+                style={{
+                    background: "#0a0a0a",
+                    backgroundImage: `radial-gradient(circle at 50% 0%, rgba(0,229,122,0.06) 0%, transparent 60%),
                   radial-gradient(circle at 80% 80%, rgba(0,229,122,0.03) 0%, transparent 40%)`
-            }}
-        >
-            {/* ── Floating particles ──────────────────────────────────────────── */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {Array.from({ length: 18 }).map((_, i) => (
-                    <motion.div
-                        key={i}
-                        className="absolute rounded-full"
-                        style={{
-                            width: Math.random() > 0.5 ? 3 : 2,
-                            height: Math.random() > 0.5 ? 3 : 2,
-                            backgroundColor: `rgba(0,229,122,${0.08 + Math.random() * 0.15})`,
-                            top: `${Math.random() * 100}%`,
-                            left: `${Math.random() * 100}%`,
-                        }}
-                        animate={{ y: [-10, 10, -10], opacity: [0.2, 0.5, 0.2] }}
-                        transition={{
-                            duration: 4 + Math.random() * 4,
-                            delay: Math.random() * 3,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                        }}
-                    />
-                ))}
-            </div>
-
-            <div className="relative z-10 max-w-7xl mx-auto px-4 py-16">
-                {/* ── Back link ──────────────────────────────────────────────────── */}
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.4 }}
-                    className="mb-12"
-                >
-                    <span
-                        onClick={() => { router.back() }}
-                        className="inline-flex items-center gap-2 text-sm text-[#929294] hover:text-[#00e57a] transition-colors group"
-                    >
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        Back to Home
-                    </span>
-                </motion.div>
-
-                {/* ── Header ─────────────────────────────────────────────────────── */}
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center mb-16"
-                >
-                    <div
-                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase mb-6"
-                        style={{
-                            background: "rgba(0,229,122,0.08)",
-                            border: "1px solid rgba(0,229,122,0.2)",
-                            color: "#00e57a",
-                        }}
-                    >
-                        <CreditCard className="w-3.5 h-3.5" />
-                        Choose Your Plan
-                    </div>
-
-                    <h1 className="text-4xl md:text-6xl font-bold mb-5 text-white leading-tight">
-                        Unlock Your{" "}
-                        <span
+                }}
+            >
+                {/* ── Floating particles ──────────────────────────────────────────── */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    {Array.from({ length: 18 }).map((_, i) => (
+                        <motion.div
+                            key={i}
+                            className="absolute rounded-full"
                             style={{
-                                background: "linear-gradient(135deg, #00e57a 0%, #34d399 60%, #22d3ee 100%)",
-                                WebkitBackgroundClip: "text",
-                                WebkitTextFillColor: "transparent",
-                                backgroundClip: "text",
+                                width: Math.random() > 0.5 ? 3 : 2,
+                                height: Math.random() > 0.5 ? 3 : 2,
+                                backgroundColor: `rgba(0,229,122,${0.08 + Math.random() * 0.15})`,
+                                top: `${Math.random() * 100}%`,
+                                left: `${Math.random() * 100}%`,
                             }}
-                        >
-                            Full Potential
-                        </span>
-                    </h1>
-                    <p className="text-lg text-[#929294] max-w-xl mx-auto">
-                        Choose the plan that fits your workflow. Cancel or upgrade anytime.
-                    </p>
+                            animate={{ y: [-10, 10, -10], opacity: [0.2, 0.5, 0.2] }}
+                            transition={{
+                                duration: 4 + Math.random() * 4,
+                                delay: Math.random() * 3,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                            }}
+                        />
+                    ))}
+                </div>
 
-                    {/* Billing toggle */}
-                    <div className="flex items-center justify-center gap-4 mt-8">
-                        <span className={`text-sm transition-colors ${!isYearly ? "text-white" : "text-[#929294]"}`}>
-                            Monthly
-                        </span>
-                        <motion.button
-                            onClick={() => setIsYearly(!isYearly)}
-                            className="relative w-14 h-8 rounded-full p-1 focus:outline-none"
-                            style={{ backgroundColor: "#1a1a1a", border: "1px solid #2a2a2a" }}
-                            whileTap={{ scale: 0.95 }}
-                            aria-label="Toggle billing cycle"
-                        >
-                            <motion.div
-                                className="w-6 h-6 rounded-full"
-                                style={{ backgroundColor: "#00e57a" }}
-                                animate={{ x: isYearly ? 24 : 0 }}
-                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                            />
-                        </motion.button>
-                        <span className={`text-sm transition-colors ${isYearly ? "text-white" : "text-[#929294]"}`}>
-                            Yearly{" "}
-                            <span className="ml-1 text-xs font-semibold text-[#00e57a]">Save 20%</span>
-                        </span>
-                    </div>
-                </motion.div>
-
-                {/* ── Loading ─────────────────────────────────────────────────────── */}
-                {isLoading && (
-                    <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                        <SkeletonCard />
-                        <SkeletonCard />
-                        <SkeletonCard />
-                    </div>
-                )}
-
-                {/* ── Error ───────────────────────────────────────────────────────── */}
-                {isError && (
+                <div className="relative z-10 max-w-7xl mx-auto px-4 py-16">
+                    {/* ── Back link ──────────────────────────────────────────────────── */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="flex flex-col items-center justify-center py-24 gap-4"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.4 }}
+                        className="mb-12"
+                    >
+                        <span
+                            onClick={() => { router.back() }}
+                            className="inline-flex items-center gap-2 text-sm text-[#929294] hover:text-[#00e57a] transition-colors group"
+                        >
+                            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                            Back to Home
+                        </span>
+                    </motion.div>
+
+                    {/* ── Header ─────────────────────────────────────────────────────── */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className="text-center mb-16"
                     >
                         <div
-                            className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                            style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}
+                            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase mb-6"
+                            style={{
+                                background: "rgba(0,229,122,0.08)",
+                                border: "1px solid rgba(0,229,122,0.2)",
+                                color: "#00e57a",
+                            }}
                         >
-                            <AlertCircle className="w-7 h-7 text-red-400" />
+                            <CreditCard className="w-3.5 h-3.5" />
+                            Choose Your Plan
                         </div>
-                        <p className="text-red-400 font-medium">Failed to load plans</p>
-                        <button
-                            onClick={() => refetch()}
-                            className="px-5 py-2 rounded-xl text-sm font-medium text-white transition-all hover:scale-105"
-                            style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
-                        >
-                            Try Again
-                        </button>
-                    </motion.div>
-                )}
 
-                {/* ── Plan cards ──────────────────────────────────────────────────── */}
-                {!isLoading && !isError && plans.length > 0 && (
-                    <div className={`grid gap-8 ${colsClass}`}>
-                        {plans.map((plan: Plan, index: number) => {
-                            const meta = PLAN_META[index] ?? { description: "Great value plan", popular: false, extraFeatures: [] };
-                            const displayPrice = getDisplayPrice(plan.price);
-                            const features = buildFeatures(plan, index);
-                            const isProcessing = processingPlanId === plan.id;
+                        <h1 className="text-4xl md:text-6xl font-bold mb-5 text-white leading-tight">
+                            Unlock Your{" "}
+                            <span
+                                style={{
+                                    background: "linear-gradient(135deg, #00e57a 0%, #34d399 60%, #22d3ee 100%)",
+                                    WebkitBackgroundClip: "text",
+                                    WebkitTextFillColor: "transparent",
+                                    backgroundClip: "text",
+                                }}
+                            >
+                                Full Potential
+                            </span>
+                        </h1>
+                        <p className="text-lg text-[#929294] max-w-xl mx-auto">
+                            Choose the plan that fits your workflow. Cancel or upgrade anytime.
+                        </p>
 
-                            return (
+                        {/* Billing toggle */}
+                        <div className="flex items-center justify-center gap-4 mt-8">
+                            <span className={`text-sm transition-colors ${!isYearly ? "text-white" : "text-[#929294]"}`}>
+                                Monthly
+                            </span>
+                            <motion.button
+                                onClick={() => setIsYearly(!isYearly)}
+                                className="relative w-14 h-8 rounded-full p-1 focus:outline-none"
+                                style={{ backgroundColor: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                                whileTap={{ scale: 0.95 }}
+                                aria-label="Toggle billing cycle"
+                            >
                                 <motion.div
-                                    key={plan.id}
-                                    initial={{ opacity: 0, y: 50 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.15, duration: 0.6, ease: "easeOut" }}
-                                    whileHover={{ y: -8 }}
-                                    className="relative rounded-2xl p-8 flex flex-col"
-                                    style={{
-                                        background: meta.popular ? "#0d0d0d" : "#111111",
-                                        border: meta.popular
-                                            ? "1px solid rgba(0,229,122,0.35)"
-                                            : "1px solid #1e1e1e",
-                                        boxShadow: meta.popular
-                                            ? "0 0 40px rgba(0,229,122,0.08), 0 20px 60px rgba(0,0,0,0.5)"
-                                            : "0 8px 32px rgba(0,0,0,0.4)",
-                                    }}
-                                >
-                                    {/* Popular badge */}
-                                    {meta.popular && (
-                                        <motion.div
-                                            className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap"
-                                            style={{ backgroundColor: "#00e57a", color: "#0a0a0a" }}
-                                            animate={{
-                                                boxShadow: [
-                                                    "0 0 15px rgba(0,229,122,0.25)",
-                                                    "0 0 28px rgba(0,229,122,0.55)",
-                                                    "0 0 15px rgba(0,229,122,0.25)",
-                                                ],
-                                            }}
-                                            transition={{ duration: 2, repeat: Infinity }}
-                                        >
-                                            <Sparkles className="w-3.5 h-3.5" />
-                                            {meta.badge ?? "Most Popular"}
-                                        </motion.div>
-                                    )}
+                                    className="w-6 h-6 rounded-full"
+                                    style={{ backgroundColor: "#00e57a" }}
+                                    animate={{ x: isYearly ? 24 : 0 }}
+                                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                />
+                            </motion.button>
+                            <span className={`text-sm transition-colors ${isYearly ? "text-white" : "text-[#929294]"}`}>
+                                Yearly{" "}
+                                <span className="ml-1 text-xs font-semibold text-[#00e57a]">Save 20%</span>
+                            </span>
+                        </div>
+                    </motion.div>
 
-                                    {/* Title */}
-                                    <div className="mb-6">
-                                        <h3 className="text-2xl font-bold mb-2 text-white">{plan.name}</h3>
-                                        <p className="text-sm text-[#929294]">{meta.description}</p>
-                                    </div>
+                    {/* ── Loading ─────────────────────────────────────────────────────── */}
+                    {isLoading && (
+                        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                            <SkeletonCard />
+                            <SkeletonCard />
+                            <SkeletonCard />
+                        </div>
+                    )}
 
-                                    {/* Price */}
-                                    <div className="mb-8">
-                                        <motion.div
-                                            key={isYearly ? "yearly" : "monthly"}
-                                            initial={{ opacity: 0, y: -8 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                                            className="flex items-baseline gap-1"
-                                        >
-                                            <span className="text-5xl font-bold text-white">₹{displayPrice}</span>
-                                            <span className="text-[#929294] text-sm ml-1">
-                                                /{isYearly ? "year" : "month"}
-                                            </span>
-                                        </motion.div>
-                                        {isYearly && plan.price > 0 && (
-                                            <p className="text-xs text-[#555] mt-1">
-                                                ≈ ₹{Math.round(displayPrice / 12)}/mo · billed annually
-                                            </p>
-                                        )}
-                                        {plan.price === 0 && (
-                                            <p className="text-xs text-[#00e57a] mt-1 font-medium">Free forever</p>
-                                        )}
-                                    </div>
+                    {/* ── Error ───────────────────────────────────────────────────────── */}
+                    {isError && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="flex flex-col items-center justify-center py-24 gap-4"
+                        >
+                            <div
+                                className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                                style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}
+                            >
+                                <AlertCircle className="w-7 h-7 text-red-400" />
+                            </div>
+                            <p className="text-red-400 font-medium">Failed to load plans</p>
+                            <button
+                                onClick={() => refetch()}
+                                className="px-5 py-2 rounded-xl text-sm font-medium text-white transition-all hover:scale-105"
+                                style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                            >
+                                Try Again
+                            </button>
+                        </motion.div>
+                    )}
 
-                                    {/* Features */}
-                                    <ul className="space-y-3.5 mb-8 flex-1">
-                                        {features.map((feature: string, i: number) => (
-                                            <motion.li
-                                                key={feature}
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: index * 0.12 + i * 0.07 + 0.3 }}
-                                                className="flex items-center gap-3 text-sm text-white"
-                                            >
-                                                <div
-                                                    className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                                                    style={{ backgroundColor: "rgba(0,229,122,0.12)" }}
-                                                >
-                                                    <Check className="w-3 h-3 text-[#00e57a]" />
-                                                </div>
-                                                {feature}
-                                            </motion.li>
-                                        ))}
-                                    </ul>
+                    {/* ── Plan cards ──────────────────────────────────────────────────── */}
+                    {!isLoading && !isError && visiblePlans.length > 0 && (
+                        <div className={`grid gap-8 ${colsClass}`}>
+                            {visiblePlans.map((plan: Plan, index: number) => {
+                                const isPopular = POPULAR_PLANS.has(plan.name);
+                                const description = PLAN_DESCRIPTION[plan.name] ?? "Great value plan";
+                                const isAnnual = plan.duration > 1;
+                                const perMonth = isAnnual ? Math.round(plan.price / plan.duration) : plan.price;
+                                const isProcessing = processingPlanId === plan.id;
 
-                                    {/* CTA button */}
-                                    <motion.button
-                                        onClick={() => handleSelectPlan(plan)}
-                                        disabled={!!processingPlanId}
-                                        whileHover={!processingPlanId ? { scale: 1.02 } : {}}
-                                        whileTap={!processingPlanId ? { scale: 0.98 } : {}}
-                                        className="w-full py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed text-sm"
-                                        style={
-                                            meta.popular
-                                                ? {
-                                                    background: "#00e57a",
-                                                    color: "#0a0a0a",
-                                                    boxShadow: "0 0 24px rgba(0,229,122,0.25)",
-                                                }
-                                                : {
-                                                    background: "#1a1a1a",
-                                                    color: "white",
-                                                    border: "1px solid #2a2a2a",
-                                                }
-                                        }
+                                return (
+                                    <motion.div
+                                        key={plan.id}
+                                        initial={{ opacity: 0, y: 50 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.15, duration: 0.6, ease: "easeOut" }}
+                                        whileHover={{ y: -8 }}
+                                        className="relative rounded-2xl p-8 flex flex-col"
+                                        style={{
+                                            background: isPopular ? "#0d0d0d" : "#111111",
+                                            border: isPopular
+                                                ? "1px solid rgba(0,229,122,0.35)"
+                                                : "1px solid #1e1e1e",
+                                            boxShadow: isPopular
+                                                ? "0 0 40px rgba(0,229,122,0.08), 0 20px 60px rgba(0,0,0,0.5)"
+                                                : "0 8px 32px rgba(0,0,0,0.4)",
+                                        }}
                                     >
-                                        {isProcessing ? (
-                                            <>
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                                Processing…
-                                            </>
-                                        ) : (
-                                            <>
-                                                {meta.popular && <Zap className="w-4 h-4" />}
-                                                {plan.price === 0 ? "Start for Free" : "Subscribe Now"}
-                                            </>
+                                        {/* Popular badge */}
+                                        {isPopular && (
+                                            <motion.div
+                                                className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap"
+                                                style={{ backgroundColor: "#00e57a", color: "#0a0a0a" }}
+                                                animate={{
+                                                    boxShadow: [
+                                                        "0 0 15px rgba(0,229,122,0.25)",
+                                                        "0 0 28px rgba(0,229,122,0.55)",
+                                                        "0 0 15px rgba(0,229,122,0.25)",
+                                                    ],
+                                                }}
+                                                transition={{ duration: 2, repeat: Infinity }}
+                                            >
+                                                <Sparkles className="w-3.5 h-3.5" />
+                                                Best Value
+                                            </motion.div>
                                         )}
-                                    </motion.button>
-                                </motion.div>
-                            );
-                        })}
-                    </div>
-                )}
 
-                {/* ── Footer note ─────────────────────────────────────────────────── */}
-                {!isLoading && !isError && (
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.8 }}
-                        className="text-center text-xs text-[#555] mt-12"
-                    >
-                        Secure payments powered by Razorpay · Cancel anytime · No hidden fees
-                    </motion.p>
-                )}
+                                        {/* Title */}
+                                        <div className="mb-6">
+                                            <h3 className="text-2xl font-bold mb-2 text-white">{plan.name}</h3>
+                                            <p className="text-sm text-[#929294]">{description}</p>
+                                        </div>
+
+                                        {/* Price */}
+                                        <div className="mb-8">
+                                            <motion.div
+                                                key={plan.id}
+                                                initial={{ opacity: 0, y: -8 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                                className="flex items-baseline gap-1"
+                                            >
+                                                <span className="text-5xl font-bold text-white">₹{plan.price}</span>
+                                                <span className="text-[#929294] text-sm ml-1">
+                                                    /{isAnnual ? "year" : "month"}
+                                                </span>
+                                            </motion.div>
+                                            {isAnnual && (
+                                                <p className="text-xs text-[#555] mt-1">
+                                                    ≈ ₹{perMonth}/mo · billed annually
+                                                </p>
+                                            )}
+                                            {plan.price === 0 && (
+                                                <p className="text-xs text-[#00e57a] mt-1 font-medium">Free forever</p>
+                                            )}
+                                        </div>
+
+                                        {/* Features — from API */}
+                                        <ul className="space-y-3.5 mb-8 flex-1">
+                                            {plan.features.map((feature: string, i: number) => (
+                                                <motion.li
+                                                    key={feature}
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ delay: index * 0.12 + i * 0.07 + 0.3 }}
+                                                    className="flex items-center gap-3 text-sm text-white"
+                                                >
+                                                    <div
+                                                        className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                                                        style={{ backgroundColor: "rgba(0,229,122,0.12)" }}
+                                                    >
+                                                        <Check className="w-3 h-3 text-[#00e57a]" />
+                                                    </div>
+                                                    {feature}
+                                                </motion.li>
+                                            ))}
+                                        </ul>
+
+                                        {/* CTA button */}
+                                        <motion.button
+                                            onClick={() => handleSelectPlan(plan)}
+                                            disabled={!!processingPlanId}
+                                            whileHover={!processingPlanId ? { scale: 1.02 } : {}}
+                                            whileTap={!processingPlanId ? { scale: 0.98 } : {}}
+                                            className="w-full py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+                                            style={
+                                                isPopular
+                                                    ? {
+                                                        background: "#00e57a",
+                                                        color: "#0a0a0a",
+                                                        boxShadow: "0 0 24px rgba(0,229,122,0.25)",
+                                                    }
+                                                    : {
+                                                        background: "#1a1a1a",
+                                                        color: "white",
+                                                        border: "1px solid #2a2a2a",
+                                                    }
+                                            }
+                                        >
+                                            {isProcessing ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                    Processing…
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {isPopular && <Zap className="w-4 h-4" />}
+                                                    {plan.price === 0 ? "Start for Free" : "Subscribe Now"}
+                                                </>
+                                            )}
+                                        </motion.button>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* ── Footer note ─────────────────────────────────────────────────── */}
+                    {!isLoading && !isError && (
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.8 }}
+                            className="text-center text-xs text-[#555] mt-12"
+                        >
+                            Secure payments powered by Razorpay · Cancel anytime · No hidden fees
+                        </motion.p>
+                    )}
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 

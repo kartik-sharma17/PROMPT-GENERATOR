@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 from v1.utils.response import response
 from v1.payment.paymentService import setupOrder
 from v1.payment import paymentService
-from v1.schema import verifyPaymentSchema
+from v1.schema import verifyPaymentSchema, getSubscriptionSchema
 
 
 async def getUserSubscription(userId: str):
@@ -28,12 +28,24 @@ async def getUserSubscription(userId: str):
             {"_id": ObjectId(subscription.get("planId"))}
         )
 
+        if plan is None:
+            raise HTTPException(
+            status_code=403,
+            detail={
+                "status": False,
+                "message": "Plan not found",
+                "data": None,
+            },
+        )
+
         subscription = {
             **subscription,
             "planName": plan.get("name") if plan.get("name") else None,
-            "planPrice": plan.get("price")if plan.get("price") else None,
-            "planDuration": plan.get("duration")if plan.get("duration") else None,
-            "plandailyLimit": plan.get("dailyLimit")if plan.get("dailyLimit") else None,
+            "planPrice": plan.get("price") if plan.get("price") else None,
+            "planDuration": plan.get("duration") if plan.get("duration") else None,
+            "plandailyLimit": (
+                plan.get("dailyLimit") if plan.get("dailyLimit") else None
+            ),
         }
 
         return {
@@ -41,7 +53,11 @@ async def getUserSubscription(userId: str):
             "message": "Subscription retrieved successfully",
             "subscription": subscription,
         }
+    
+    except Exception:
+        raise
     except Exception as e:
+        print(f"something went wrong while fetching the subscription, {e}")
         raise HTTPException(
             status_code=403,
             detail={
@@ -50,6 +66,28 @@ async def getUserSubscription(userId: str):
                 "data": None,
             },
         )
+
+
+async def getUserSubscriptionDto(current_user):
+    userId = current_user.get("data").get("userId")
+
+    subscription = await getUserSubscription(userId)
+
+    if subscription["status"]:
+        subscriptionDetails = getSubscriptionSchema(
+            planId=subscription["subscription"].get("planId"),
+            planName=subscription["subscription"].get("planName"),
+            planPrice=subscription["subscription"].get("planPrice"),
+            planDuration=subscription["subscription"].get("planDuration"),
+            planDailyLimit=subscription["subscription"].get("plandailyLimit"),
+            startDate=subscription["subscription"].get("startDate"),
+            endDate=subscription["subscription"].get("endDate"),
+            isActive=True,
+        ).dict()
+    else:
+        subscriptionDetails = getSubscriptionSchema(isActive=False).dict()
+
+    return response(message="Subscription retrieved Successfully", data=subscriptionDetails)
 
 
 async def checkUsage(userId: str):

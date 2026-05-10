@@ -20,12 +20,7 @@ export const Navbar = () => {
             className="flex items-center gap-2 text-xl font-bold"
             whileHover={{ scale: 1.02 }}
           >
-            <div className="w-8 h-8 rounded-lg bg-[#00f279]/20 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-[#00f279]" />
-            </div>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#effaf0] via-[#00f279] to-[#effaf0]">
-              Clarix
-            </span>
+            <img className="h-auto w-35" src={`/clarixLogo.png`}/>
           </motion.a>
 
           {/* Nav links

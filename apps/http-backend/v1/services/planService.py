@@ -18,6 +18,7 @@ class planService:
                     price=plan.get("price"),
                     duration=plan.get("duration"),
                     dailyLimit=plan.get("dailyLimit"),
+                    features=plan.get("features"),
                 ).dict()
                 for plan in plans
             ]
