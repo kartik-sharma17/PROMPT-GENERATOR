@@ -7,6 +7,9 @@ import MicrosoftClarity from "@/@comp/MicrosoftClarity";
 export const metadata: Metadata = {
   title: "Prompt Generator",
   description: "Prompt Generator is a tool which is used for generate effective prompt for ai model",
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({

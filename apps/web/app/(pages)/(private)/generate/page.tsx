@@ -817,11 +817,8 @@ const Page = () => {
       {/* Left Panel — history preview on landing */}
       <div className="col-span-2 border-[#1a1a1a] border-r h-full flex flex-col bg-[#0d0d0d]">
         <div className="h-14 border-b border-[#1a1a1a] flex items-center px-3">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-[#00e57a]/15 flex items-center justify-center">
-              <Zap className="h-3.5 w-3.5 text-[#00e57a]" />
-            </div>
-            <span className="text-white text-xs font-semibold">Clarix</span>
+          <div className="flex items-center gap-2 w-full">
+            <img className="h-auto w-30" src={`/clarixLogo.png`} />
           </div>
         </div>
 
