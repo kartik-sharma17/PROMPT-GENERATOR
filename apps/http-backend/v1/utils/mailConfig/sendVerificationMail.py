@@ -13,7 +13,7 @@ async def SendVerificationEmail(email: str, name: str, token: str):
             html_content = html_template.render(name=name, verify_link=verify_link)
 
         message = MessageSchema(
-            subject="Verify Your Ai Prompt Generator Account",
+            subject="Verify Your Clarix Account",
             recipients=[email],
             body=html_content,
             subtype="html",

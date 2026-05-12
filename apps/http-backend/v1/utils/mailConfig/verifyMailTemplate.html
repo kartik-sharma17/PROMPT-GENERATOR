@@ -34,9 +34,9 @@
                 </tr>
               </table>
 
-              <!-- Glow circle icon -->
-              <div style="margin:28px auto 0;width:72px;height:72px;background:rgba(99,247,168,0.1);border:1px solid rgba(99,247,168,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;line-height:72px;font-size:30px;">
-                ✉
+              <!-- FIX: Removed display:flex — not supported in email clients. Use text-align + line-height to center icon instead. -->
+              <div style="margin:28px auto 0;width:72px;height:72px;background:rgba(99,247,168,0.1);border:1px solid rgba(99,247,168,0.3);border-radius:50%;text-align:center;line-height:72px;font-size:30px;">
+                ✉️
               </div>
 
             </td>
@@ -86,10 +86,10 @@
             </td>
           </tr>
 
-          <!-- Info box -->
+          <!-- Info box — FIX: removed duplicate padding from outer table, padding only on inner td -->
           <tr>
             <td style="padding:0 40px 32px;">
-              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(99,247,168,0.05);border:1px solid rgba(99,247,168,0.12);border-radius:12px;padding:16px 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(99,247,168,0.05);border:1px solid rgba(99,247,168,0.12);border-radius:12px;">
                 <tr>
                   <td style="padding:16px 20px;">
                     <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#63F7A8;">Heads up</p>
