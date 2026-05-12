@@ -18,7 +18,7 @@ class Settings:
     MAIL_SERVER: str = os.getenv("MAIL_SERVER")
     MAIL_STARTTLS: bool = os.getenv("MAIL_STARTTLS")
     MAIL_SSL_TLS: bool = os.getenv("MAIL_SSL_TLS")
-    MAIL_FROM_NAME: str = os.getenv("DATABASE_NAME")
+    MAIL_FROM_NAME: str = os.getenv("MAIL_FROM_NAME")
     BASE_URL: str = os.getenv("BASE_URL")
     RAZOR_PAY_API_KEY: str = os.getenv("RAZOR_PAY_API_KEY")
     RAZOR_PAY_SECRET: str = os.getenv("RAZOR_PAY_SECRET")
