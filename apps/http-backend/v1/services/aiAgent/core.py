@@ -8,7 +8,6 @@ from bson import ObjectId
 from v1.services.subscriptionService import incrementUsage
 import logging
 
-
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
@@ -24,8 +23,8 @@ async def chatWithAgent(history: dict):
             historyId = history.get("historyId")
             projectId = history.get("projectId")
             constraints = history.get("constraints")
-            modelId =  history.get("modelId")
-            modelName =  history.get("modelName")
+            modelId = history.get("modelId")
+            modelName = history.get("modelName")
 
             if not userId:
                 return response(
@@ -50,134 +49,81 @@ async def chatWithAgent(history: dict):
                 .to_list(length=30)
             )
 
-            project_keywords = [
-                # prompt generation
-                "prompt",
-                "write prompt",
-                "build prompt",
-                "prompt for",
-                "prompt to",
-                "ai prompt",
-                # project related
-                "project",
-                "project details",
-                "about project",
-                "explain project",
-                "describe project",
-                "project overview",
-                # technologies
-                "technology",
-                "technologies",
-                "tech stack",
-                "stack used",
-                "what tech",
-                "framework",
-                "framework used",
-                # implementation
-                "implement",
-                "implementation",
-                "how to build",
-                "how to create",
-                "how to develop",
-                "how to implement",
-                # features
-                "feature",
-                "features",
-                "functionalities",
-                "capabilities",
-                # constraints
-                "constraint",
-                "constraints",
-                "requirements",
-                "rules",
-                "conditions",
-                # description
-                "description",
-                "details",
-                "information",
-                "explain",
-                # documentation style
-                "documentation",
-                "specification",
-                "spec",
-            ]
-
-            should_use_project_prompt = any(
-                word in content.lower() for word in project_keywords
-            )
-
-            if should_use_project_prompt:
-                if projectId:
-                    projectDetails = await db["ProjectInfoTable"].find_one(
-                        {"_id": ObjectId(projectId)}
+            if projectId:
+                projectDetails = await db["ProjectInfoTable"].find_one(
+                    {"_id": ObjectId(projectId)}
+                )
+                if projectDetails is None:
+                    return response(
+                        message="Project not found, please try again",
+                        code=500,
+                        status=False,
                     )
-                    if projectDetails is None:
-                        return response(
-                                message="Project not found, please try again",
-                                code=500,
-                                status= False,
-                            )
 
-                    projectPrompt = f"""
+                projectPrompt = f"""
                         Use the following project details when generate prompt.
 
                         Project Name: {projectDetails.get("projectName")}
                         Project Description: {projectDetails.get("projectDescription")}
                         Technologies Used: {projectDetails.get("technologiesUsed", "Not defined")}
                     """
-                    chat_messages.append(SystemMessage(content=projectPrompt))
+                chat_messages.append(SystemMessage(content=projectPrompt))
 
-                    log.info(f"{projectDetails.get('projectName')}project included")
+                log.info(f"{projectDetails.get('projectName')}project included")
 
-                if modelId:
-                    modelDetails = await db["aiModel"].find_one(
-                        {"_id": ObjectId(modelId)}
+            if modelId:
+                modelDetails = await db["aiModel"].find_one(
+                    {"_id": ObjectId(modelId)}
+                )
+                if modelDetails is None:
+                    return response(
+                        message="AI Model not found, please try again",
+                        code=500,
+                        status=False,
                     )
-                    if modelDetails is None:
-                        return response(
-                            message="AI Model not found, please try again",
-                            code=500,
-                            status= False,
-                        )
 
-                    aiModelPrompt = f"""
+                aiModelPrompt = f"""
                         Generate the prompt for {modelDetails.get("name")}
                     """
-                    chat_messages.append(SystemMessage(content=aiModelPrompt))
+                chat_messages.append(SystemMessage(content=aiModelPrompt))
 
-                if modelName:
-                    aiModelPrompt = f"""
+                log.info(f"{modelDetails.get("name")}Model included")
+
+            if modelName:
+                aiModelPrompt = f"""
                         Generate the prompt for {modelName}
                     """
-                    chat_messages.append(SystemMessage(content=aiModelPrompt))
+                chat_messages.append(SystemMessage(content=aiModelPrompt))
 
-                if constraints:
-                    constraint_ids = [ObjectId(id) for id in constraints]
-                    constraintsDetails = (
-                        await db["constraintModel"]
-                        .find({"_id": {"$in": constraint_ids}})
-                        .to_list(length=None)
+                log.info(f"{modelName} Model included")
+
+            if constraints:
+                constraint_ids = [ObjectId(id) for id in constraints]
+                constraintsDetails = (
+                    await db["constraintModel"]
+                    .find({"_id": {"$in": constraint_ids}})
+                    .to_list(length=None)
+                )
+
+                if constraintsDetails is None:
+                    return response(
+                        message="Constraints not found, please try again",
+                        code=500,
+                        status=False,
                     )
 
-                    if constraintsDetails is None:
-                        return response(
-                                message="Constraints not found, please try again",
-                                code=500,
-                                status= False,
-                            )
-
-                    constraintDescription = "\n".join(
+                constraintDescription = "\n".join(
                         f"- {constraint.get('promptDescription')}"
                         for constraint in constraintsDetails
                     )
 
-                    constraintsPrompt = f"""
+                constraintsPrompt = f"""
                         add the following constraints while generating the prompt.
                         {constraintDescription}
                     """
 
-                    chat_messages.append(SystemMessage(content=constraintsPrompt))
-                
+                chat_messages.append(SystemMessage(content=constraintsPrompt))
+                log.info(f"Contraints added")
 
             messages.reverse()
 
@@ -189,7 +135,7 @@ async def chatWithAgent(history: dict):
 
             chat_messages.append(HumanMessage(content=content))
 
-            result = await graph.ainvoke({"messages": chat_messages,"userId": userId})
+            result = await graph.ainvoke({"messages": chat_messages, "userId": userId})
 
             ai_response = result["messages"][-1].text
 
