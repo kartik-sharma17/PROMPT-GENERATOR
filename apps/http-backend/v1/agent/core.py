@@ -4,7 +4,7 @@ from langchain_core.messages import SystemMessage
 from langgraph.prebuilt import ToolNode, tools_condition
 from langchain_google_genai import ChatGoogleGenerativeAI
 from config import settings
-from v1.prompt.systemPrompt import SYSTEM_PROMPT
+from v1.prompt.systemPromptV2 import SYSTEM_PROMPT
 
 from v1.agent.state import AgentState
 from v1.agentTool.updateUserUsage import updateUserUsage
