@@ -98,7 +98,7 @@ const ChoosePlanPage = () => {
 
             const orderRes = await subscribe(plan.id).unwrap();
 
-            if (orderRes?.status) {
+            if (orderRes?.status && !orderRes?.data) {
                 toast.error(orderRes?.message);
                 router.replace("/my-plan");
                 return;
