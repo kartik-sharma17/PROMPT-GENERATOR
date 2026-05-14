@@ -19,14 +19,18 @@ async def VerifyEmailTokenService(token):
 
         await db["users"].update_one({"email": email}, {"$set": {"is_verified": True}})
 
-        access_token = GenerateToken(
-            {"email": email, "name": user.get("full_name", "")}
-        )
+        token = GenerateToken(
+                data={
+                    "email": user["email"],
+                    "userName": user["full_name"],
+                    "userId": str(user["_id"]),
+                }
+            )
 
         return response(
             message="Account Verification Successful",
             data={
-                "token": access_token,
+                "token": token,
                 "name": user["full_name"],
                 "email": user["email"],
                 "last_login": user.get("last_login"),
