@@ -12,8 +12,7 @@ import {
   ChevronRight, CircleCheck, CirclePlus, History, MessageSquareMore,
   MessageSquareShare, Mic, Palette, Pencil, Search, Send, Settings,
   Trash2, User, X, Zap, Shield, Bot, MoreHorizontal,
-  LogOut,
-  Landmark
+  LogOut, Landmark, Copy, Check
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useDispatch } from "react-redux"
@@ -67,6 +66,65 @@ const formatTime = (rawDate: string) => {
 const formatHistoryDate = (rawDate: string) => {
   const date = new Date(rawDate)
   return date.toLocaleDateString([], { month: "short", day: "numeric" })
+}
+
+// ─── Prompt Parser ────────────────────────────────────────────────────────────
+
+const parseMessage = (text: string): { before: string; prompt: string | null; after: string } => {
+  const regex = /123321\s*([\s\S]*?)\s*123321/
+  const match = text.match(regex)
+  if (!match) return { before: text, prompt: null, after: "" }
+  const idx = text.indexOf(match[0])
+  return {
+    before: text.slice(0, idx).trim(),
+    prompt: match[1].trim(),
+    after: text.slice(idx + match[0].length).trim(),
+  }
+}
+
+// ─── PromptBlock ──────────────────────────────────────────────────────────────
+
+const PromptBlock = ({ prompt }: { prompt: string }) => {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(prompt)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const CopyBtn = () => (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-1.5 text-[10px] font-medium text-[#00e57a] hover:text-white transition-colors px-2.5 py-1 rounded-md bg-[#00e57a]/10 hover:bg-[#00e57a]/20 border border-[#00e57a]/25"
+    >
+      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+      {copied ? "Copied!" : "Copy Prompt"}
+    </button>
+  )
+
+  return (
+    <div className="my-2 rounded-xl border border-[#00e57a]/30 bg-[#060e09] overflow-hidden shadow-lg shadow-[#00e57a]/5">
+      {/* Top bar with label + copy */}
+      <div className="flex items-center justify-between px-3 py-2 border-b border-[#00e57a]/20 bg-[#0d2018]">
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-[#00e57a] animate-pulse" />
+          <span className="text-[#00e57a] text-[10px] font-semibold uppercase tracking-widest">Generated Prompt</span>
+        </div>
+        <CopyBtn />
+      </div>
+
+      {/* Prompt text */}
+      <pre className="px-4 py-4 text-sm text-[#d4f5e2] whitespace-pre-wrap leading-relaxed font-mono">
+        {prompt}
+      </pre>
+
+      {/* Bottom copy */}
+      <div className="flex justify-end px-3 py-2 border-t border-[#00e57a]/20 bg-[#0d2018]">
+        <CopyBtn />
+      </div>
+    </div>
+  )
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -608,26 +666,40 @@ const Page = () => {
                 </div>
               </div>
             ) : (
-              messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex gap-3 ${message.role === "assistant" ? "self-start" : "self-end flex-row-reverse"} max-w-[72%]`}
-                >
-                  <div className="flex flex-col gap-1">
-                    <pre
-                      className={`px-4 whitespace-pre-wrap py-3 rounded-2xl text-sm leading-relaxed ${message.role === "assistant"
-                        ? "bg-[#141414] border border-[#1e1e1e] text-[#e8e8e8] rounded-tl-sm"
-                        : "bg-[#00e57a]/10 border border-[#00e57a]/20 text-white rounded-tr-sm"
-                        }`}
-                    >
-                      {message.text}
-                    </pre>
-                    <span className={`text-[10px] text-[#444] ${message.role === "user" ? "text-right" : "text-left"}`}>
-                      {formatTime(message.timeStamp)}
-                    </span>
+              messages.map((message, index) => {
+                const parsed = message.role === "assistant" ? parseMessage(message.text) : null
+                const hasPrompt = parsed?.prompt != null
+
+                return (
+                  <div
+                    key={index}
+                    className={`flex gap-3 ${message.role === "assistant" ? "self-start" : "self-end flex-row-reverse"} ${hasPrompt ? "max-w-[85%] w-[85%]" : "max-w-[72%]"}`}
+                  >
+                    <div className="flex flex-col gap-1 w-full">
+                      {message.role === "assistant" && parsed ? (
+                        <div className="rounded-2xl rounded-tl-sm bg-[#141414] border border-[#1e1e1e] px-4 py-3 text-sm leading-relaxed text-[#e8e8e8]">
+                          {parsed.before && (
+                            <p className="whitespace-pre-wrap mb-2">{parsed.before}</p>
+                          )}
+                          {parsed.prompt && <PromptBlock prompt={parsed.prompt} />}
+                          {parsed.after && (
+                            <p className="whitespace-pre-wrap mt-2">{parsed.after}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <pre
+                          className="px-4 whitespace-pre-wrap py-3 rounded-2xl text-sm leading-relaxed bg-[#00e57a]/10 border border-[#00e57a]/20 text-white rounded-tr-sm"
+                        >
+                          {message.text}
+                        </pre>
+                      )}
+                      <span className={`text-[10px] text-[#444] ${message.role === "user" ? "text-right" : "text-left"}`}>
+                        {formatTime(message.timeStamp)}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))
+                )
+              })
             )}
 
             {isLoading && (
