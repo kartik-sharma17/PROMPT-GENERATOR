@@ -77,7 +77,7 @@ const parseMessage = (text: string): { before: string; prompt: string | null; af
   const idx = text.indexOf(match[0])
   return {
     before: text.slice(0, idx).trim(),
-    prompt: match[1].trim(),
+    prompt: match[1]?.trim() || null,
     after: text.slice(idx + match[0].length).trim(),
   }
 }
