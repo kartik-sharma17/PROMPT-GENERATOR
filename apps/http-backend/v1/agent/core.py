@@ -20,7 +20,7 @@ llm = ChatGoogleGenerativeAI(
 tool_node = ToolNode(tools)
 
 
-def agent_node(state: AgentState):
+async def agent_node(state: AgentState):
     messages = state["messages"]
     userId = state["userId"]
 
@@ -36,7 +36,7 @@ def agent_node(state: AgentState):
         SystemMessage(content=f"The current user's ID is '{userId}'. Use this when calling tools.")
     )
 
-    response = llm.invoke(messages)
+    response = await llm.ainvoke(messages)
 
     return {"messages": messages + [response]}
 

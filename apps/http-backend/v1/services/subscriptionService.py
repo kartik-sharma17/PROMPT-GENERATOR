@@ -3,11 +3,20 @@ from datetime import datetime
 from bson import ObjectId
 from fastapi import HTTPException
 from v1.model.userSubscriptionModel import SubscriptionModel
+from v1.model import usageModel
 from dateutil.relativedelta import relativedelta
 from v1.utils.response import response
 from v1.payment.paymentService import setupOrder
 from v1.payment import paymentService
 from v1.schema import verifyPaymentSchema, getSubscriptionSchema
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+log = logging.getLogger(__name__)
 
 
 async def getUserSubscription(userId: str):
@@ -18,11 +27,14 @@ async def getUserSubscription(userId: str):
         )
 
         if subscription is None:
-            return {
-                "status": False,
-                "message": "Subscription not found",
-                "subscription": None,
-            }
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "status": False,
+                    "message": "Subscription not found",
+                    "data": None,
+                },
+            )
 
         plan = await db["planModel"].find_one(
             {"_id": ObjectId(subscription.get("planId"))}
@@ -30,13 +42,13 @@ async def getUserSubscription(userId: str):
 
         if plan is None:
             raise HTTPException(
-            status_code=403,
-            detail={
-                "status": False,
-                "message": "Plan not found",
-                "data": None,
-            },
-        )
+                status_code=404,
+                detail={
+                    "status": False,
+                    "message": "Plan not found",
+                    "data": None,
+                },
+            )
 
         subscription = {
             **subscription,
@@ -53,7 +65,7 @@ async def getUserSubscription(userId: str):
             "message": "Subscription retrieved successfully",
             "subscription": subscription,
         }
-    
+
     except Exception:
         raise
     except Exception as e:
@@ -75,7 +87,7 @@ async def getUserSubscriptionDto(current_user):
 
     if subscription["status"]:
         subscriptionDetails = getSubscriptionSchema(
-            planId=subscription["subscription"].get("planId"),
+            planId=subscription["subscription"].get(""),
             planName=subscription["subscription"].get("planName"),
             planPrice=subscription["subscription"].get("planPrice"),
             planDuration=subscription["subscription"].get("planDuration"),
@@ -87,7 +99,9 @@ async def getUserSubscriptionDto(current_user):
     else:
         subscriptionDetails = getSubscriptionSchema(isActive=False).dict()
 
-    return response(message="Subscription retrieved Successfully", data=subscriptionDetails)
+    return response(
+        message="Subscription retrieved Successfully", data=subscriptionDetails
+    )
 
 
 async def checkUsage(userId: str):
@@ -95,10 +109,14 @@ async def checkUsage(userId: str):
         db = getDB()
         today = datetime.utcnow().date().isoformat()
 
-        usage = await db["usage"].find_one({"userId": userId, "date": today})
+        usage = await db["UsageModel"].find_one({"userId": userId, "date": today})
 
         if not usage:
             return {"status": True, "message": "Usage 0"}
+
+
+        print("this is a useage model")
+        print(usage)
 
         planId = usage.get("planId")
         if not planId:
@@ -168,12 +186,21 @@ async def incrementUsage(userId: str):
         db = getDB()
         today = datetime.utcnow().date().isoformat()
 
-        result = await db["usage"].update_one(
+        userSubscription = await getUserSubscription(userId)
+
+        await db["UsageModel"].update_one(
             {"userId": userId, "date": today},
-            {"$inc": {"promptCount": 1}, "$set": {"updatedAt": today}},
+            {
+                "$inc": {"promptCount": 1},
+                "$set": {"updatedAt": today},
+                "$setOnInsert": {
+                    "planId": userSubscription.get("subscription").get("planId"),
+                    "createdAt": today,
+                },
+            },
             upsert=True,
         )
-
+        log.info(f"usage update for the user = {userId}")
         return {"status": True, "message": "usage updated successfully"}
 
     except Exception as e:

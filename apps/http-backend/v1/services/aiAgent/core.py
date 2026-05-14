@@ -189,7 +189,7 @@ async def chatWithAgent(history: dict):
 
             chat_messages.append(HumanMessage(content=content))
 
-            result = graph.invoke({"messages": chat_messages,"userId": userId})
+            result = await graph.ainvoke({"messages": chat_messages,"userId": userId})
 
             ai_response = result["messages"][-1].text
 
