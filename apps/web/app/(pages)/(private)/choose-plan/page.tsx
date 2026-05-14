@@ -34,10 +34,10 @@ interface Plan {
 
 // ── Plan description & popular flag by name ───────────────────────────────────
 const PLAN_DESCRIPTION: Record<string, string> = {
-    "Free":           "Perfect for getting started",
-    "Pro":            "For power users and creators",
-    "Premium":        "For teams and organizations",
-    "Pro Annual":     "For power users and creators",
+    "Free": "Perfect for getting started",
+    "Pro": "For power users and creators",
+    "Premium": "For teams and organizations",
+    "Pro Annual": "For power users and creators",
     "Premium Annual": "For teams and organizations",
 };
 const POPULAR_PLANS = new Set(["Pro", "Premium Annual"]);
@@ -98,9 +98,13 @@ const ChoosePlanPage = () => {
 
             const orderRes = await subscribe(plan.id).unwrap();
 
-            console.log(orderRes)
+            if (orderRes?.status) {
+                toast.error(orderRes?.message);
+                router.replace("/my-plan");
+                return;
+            }
 
-            if (!orderRes?.data) {
+            if (!orderRes?.data && !orderRes?.status) {
                 toast.error("Failed to create order. Please try again.");
                 return;
             }

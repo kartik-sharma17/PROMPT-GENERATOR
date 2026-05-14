@@ -12,8 +12,7 @@ from v1.schema import verifyPaymentSchema, getSubscriptionSchema
 import logging
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 log = logging.getLogger(__name__)
@@ -27,14 +26,11 @@ async def getUserSubscription(userId: str):
         )
 
         if subscription is None:
-            raise HTTPException(
-                status_code=404,
-                detail={
-                    "status": False,
-                    "message": "Subscription not found",
-                    "data": None,
-                },
-            )
+            return {
+                "status": False,
+                "message": "Subscription not found",
+                "data": None,
+            }
 
         plan = await db["planModel"].find_one(
             {"_id": ObjectId(subscription.get("planId"))}
@@ -114,7 +110,6 @@ async def checkUsage(userId: str):
         if not usage:
             return {"status": True, "message": "Usage 0"}
 
-
         print("this is a useage model")
         print(usage)
 
@@ -187,6 +182,16 @@ async def incrementUsage(userId: str):
         today = datetime.utcnow().date().isoformat()
 
         userSubscription = await getUserSubscription(userId)
+
+        if userSubscription is None:
+            raise HTTPException(
+                status_code=404,
+                    detail={
+                "status": False,
+                "message": "subscription not found",
+                "data": None,
+            },
+            )
 
         await db["UsageModel"].update_one(
             {"userId": userId, "date": today},
