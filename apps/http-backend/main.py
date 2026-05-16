@@ -28,7 +28,7 @@ app.include_router(aiModelRouter.router, prefix="/v1")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000","https://prompt-generator-web-sand.vercel.app"
+        "http://localhost:3000","https://prompt-generator-web-sand.vercel.app","https://www.clarixai.in"
     ],
     allow_credentials=True,
     allow_methods=["*"],
