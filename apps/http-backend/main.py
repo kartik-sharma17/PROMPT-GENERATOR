@@ -12,6 +12,7 @@ from v1.routes import (
     aiModelRouter
 )
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 
 app = FastAPI()
@@ -34,6 +35,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.api_route("/health", methods=["GET", "HEAD"])
+async def health_check():
+    return JSONResponse(content={"status": "ok"})
 
 
 @app.on_event("startup")
