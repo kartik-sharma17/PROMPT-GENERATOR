@@ -40,6 +40,18 @@ app.add_middleware(
 async def health_check():
     return JSONResponse(content={"status": "ok"})
 
+@app.get("/test-mail")
+async def test_mail():
+    import smtplib
+    import os
+    try:
+        with smtplib.SMTP(os.getenv("MAIL_SERVER"), int(os.getenv("MAIL_PORT")), timeout=15) as smtp:
+            smtp.ehlo()
+            smtp.starttls()
+            smtp.login(os.getenv("MAIL_USERNAME"), os.getenv("MAIL_PASSWORD"))
+            return {"status": "success", }
+    except Exception as e:
+        return {"status": "failed", "error ": str(e),}
 
 @app.on_event("startup")
 async def startup_event():
