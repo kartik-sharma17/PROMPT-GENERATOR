@@ -23,6 +23,8 @@ class Settings:
     RAZOR_PAY_API_KEY: str = os.getenv("RAZOR_PAY_API_KEY")
     RAZOR_PAY_SECRET: str = os.getenv("RAZOR_PAY_SECRET")
 
+    RESEND_API_KEY: str = os.getenv("RESEND_API_KEY")
+
 
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY")
 
