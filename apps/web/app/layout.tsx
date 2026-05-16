@@ -8,7 +8,10 @@ export const metadata: Metadata = {
   title: "Clarix AI – Free AI Prompt Generator for ChatGPT, Midjourney & More",
   description:
     "Clarix AI is a free AI prompt generator that helps you create powerful, effective prompts for ChatGPT, Midjourney, Stable Diffusion, and other AI models.",
-  keywords: [
+  icons:{
+    icon: "/favicon.png",
+  },
+    keywords: [
     "AI prompt generator",
     "Clarix AI",
     "Clarix",

@@ -1,7 +1,8 @@
-from fastapi_mail import MessageSchema
+import resend
 from jinja2 import Template
-from v1.utils.mailConfig.emailConfig import fastmail
 from config import settings
+
+resend.api_key = settings.RESEND_API_KEY
 
 
 async def SendVerificationEmail(email: str, name: str, token: str):
@@ -12,14 +13,13 @@ async def SendVerificationEmail(email: str, name: str, token: str):
             html_template = Template(f.read())
             html_content = html_template.render(name=name, verify_link=verify_link)
 
-        message = MessageSchema(
-            subject="Verify Your Clarix Account",
-            recipients=[email],
-            body=html_content,
-            subtype="html",
-        )
+        resend.Emails.send({
+            "from": f"{settings.MAIL_FROM_NAME} <support@clarixai.in>",
+            "to": [email],
+            "subject": "Verify Your Clarix Account",
+            "html": html_content,
+        })
 
-        await fastmail.send_message(message)
         return True
     except Exception as e:
         print(f"somethings went wrong whiling sending email {e}")
