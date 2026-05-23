@@ -79,13 +79,13 @@ export const Footer = () => {
             </p>
             <div className="flex gap-6">
               <a
-                href="#"
+                href="/privacy"
                 className="text-xs uppercase tracking-[0.15em] text-[#86a38a] hover:text-[#00f279] transition-colors duration-200"
               >
                 Privacy
               </a>
               <a
-                href="#"
+                href="/terms"
                 className="text-xs uppercase tracking-[0.15em] text-[#86a38a] hover:text-[#00f279] transition-colors duration-200"
               >
                 Terms
