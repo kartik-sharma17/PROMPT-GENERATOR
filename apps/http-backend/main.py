@@ -36,10 +36,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.api_route("/health", methods=["GET", "HEAD"])
-async def health_check():
-    return JSONResponse(content={"status": "ok"})
-
 @app.on_event("startup")
 async def startup_event():
     await connectDB()
@@ -47,4 +43,8 @@ async def startup_event():
 
 @app.get("/")
 async def welcome():
-    return {"This is a api service for Ai prompt generator, jai mata di"}
+    return {"This is a api service for clarix ai prompt generator, jai mata di"}
+
+@app.head("/")
+async def health_check():
+    return JSONResponse(content={"status": "ok"})
