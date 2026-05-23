@@ -276,10 +276,10 @@ const AboutPage = () => {
           STATS
       ════════════════════════════════════════════════════════════════════ */}
       <section className="relative z-10 max-w-4xl mx-auto px-6 pb-20">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <StatCard value="50K+" label="Prompts generated" delay={0} />
           <StatCard value="12K+" label="Active users" delay={0.1} />
-          <StatCard value="6" label="AI models supported" delay={0.2} />
+          {/* <StatCard value="6" label="AI models supported" delay={0.2} /> */}
           <StatCard value="3×" label="Faster results" delay={0.3} />
         </div>
       </section>
@@ -455,13 +455,13 @@ const AboutPage = () => {
           <FeatureCard
             delay={0.42}
             icon={<Globe className="w-5 h-5" />}
-            title="Multi-Language Support"
+            title="Multi-Language Support (Coming Soon)"
             description="Generate prompts and receive outputs in your preferred language. Our engine understands nuance across 30+ languages."
           />
           <FeatureCard
             delay={0.49}
             icon={<Users className="w-5 h-5" />}
-            title="Team Collaboration"
+            title="Team Collaboration (Coming Soon)"
             description="Share projects, prompt libraries, and constraints with your team. Everyone stays aligned with a single source of truth for your AI strategy."
           />
           <FeatureCard
