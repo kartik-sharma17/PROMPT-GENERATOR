@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const PUBLIC_ROUTES = ["/", "/login", "/clarixLogo.png", "/og-banner.png", "/signup", "/clarixLogo.jpg", "/favicon.png", "/choose-plan", "/verify", "/verify-account", "/forget-password", "/reset-password", "/about-us", "/contact-us"];
+const PUBLIC_ROUTES = ["/", "/login","/terms","/privacy", "/clarixLogo.png", "/og-banner.png", "/signup", "/clarixLogo.jpg", "/favicon.png", "/choose-plan", "/verify", "/verify-account", "/forget-password", "/reset-password", "/about-us", "/contact-us"];
 
 async function verifyToken(token: string) {
   try {
