@@ -2,33 +2,94 @@
 
 import { Navbar } from "@/@comp"
 import { Footer } from "@/@comp"
-import { Mail, MapPin, Phone, Send, Sparkles, ArrowRight } from "lucide-react"
+import { Mail, MapPin, Send, Sparkles, ArrowRight } from "lucide-react"
 import { useState } from "react"
+import { useContactUsMutation } from "@/reduxConfig/service/authService"
+import { motion } from "framer-motion"
 
+// ── Types ─────────────────────────────────────────────────────────────────────
+interface FormData {
+  full_name: string
+  email: string
+  have_account: boolean
+  description: string
+}
+
+const INITIAL_FORM: FormData = {
+  full_name: "",
+  email: "",
+  have_account: false,
+  description: "",
+}
+
+// ── Spinner ───────────────────────────────────────────────────────────────────
+const Spinner = () => (
+  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+  </svg>
+)
+
+// ── Input shared style ────────────────────────────────────────────────────────
+const inputStyle: React.CSSProperties = {
+  background: "hsl(var(--glass) / 50%)",
+  border: "1px solid hsl(var(--glass-border) / 0.35)",
+}
+
+const inputClass =
+  "w-full px-4 py-3 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition-all duration-200 focus:ring-1"
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 const ContactPage = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  })
-  const [sending, setSending] = useState(false)
+  const [formData, setFormData] = useState<FormData>(INITIAL_FORM)
   const [sent, setSent] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
 
+  const [contactUs, { isLoading: sending }] = useContactUsMutation()
+
+  // Generic text / email / textarea handler
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    setApiError(null)
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  }
+
+  // Toggle for have_account
+  const handleToggle = () => {
+    setApiError(null)
+    setFormData((prev) => ({ ...prev, have_account: !prev.have_account }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSending(true)
-    await new Promise((r) => setTimeout(r, 1800))
-    setSending(false)
-    setSent(true)
+    setApiError(null)
+
+    try {
+      await contactUs({
+        full_name: formData.full_name,
+        email: formData.email,
+        have_account: formData.have_account,
+        description: formData.description,
+      }).unwrap()
+
+      setSent(true)
+    } catch (err: any) {
+      const msg =
+        err?.data?.detail?.message ??
+        err?.data?.message ??
+        "Something went wrong. Please try again."
+      setApiError(msg)
+    }
   }
 
+  const handleReset = () => {
+    setSent(false)
+    setFormData(INITIAL_FORM)
+    setApiError(null)
+  }
+
+  // ── Contact info cards data ───────────────────────────────────────────────
   const contactInfo = [
     {
       icon: <Mail className="w-5 h-5" />,
@@ -36,12 +97,6 @@ const ContactPage = () => {
       value: "support.clarix@gmail.com",
       sub: "We reply within 24 hours",
     },
-    // {
-    //   icon: <Phone className="w-5 h-5" />,
-    //   label: "Call Us",
-    //   value: "+1 (800) 123-4567",
-    //   sub: "Mon–Fri, 9 AM – 6 PM EST",
-    // },
     {
       icon: <MapPin className="w-5 h-5" />,
       label: "Our Office",
@@ -207,6 +262,8 @@ const ContactPage = () => {
 
             {!sent ? (
               <form onSubmit={handleSubmit} className="flex flex-col gap-5 relative z-10">
+
+                {/* Header */}
                 <div>
                   <h2 className="text-2xl font-bold mb-1">
                     Send us a{" "}
@@ -217,7 +274,7 @@ const ContactPage = () => {
                   </p>
                 </div>
 
-                {/* Name + Email row */}
+                {/* Full Name + Email row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs text-gray-400 font-medium uppercase tracking-widest">
@@ -225,18 +282,13 @@ const ContactPage = () => {
                     </label>
                     <input
                       type="text"
-                      name="name"
+                      name="full_name"
                       required
                       placeholder="John Doe"
-                      value={formData.name}
+                      value={formData.full_name}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition-all duration-200 focus:ring-1"
-                      style={{
-                        background: "hsl(var(--glass) / 50%)",
-                        border: "1px solid hsl(var(--glass-border) / 0.35)",
-                        // @ts-ignore
-                        "--tw-ring-color": "hsl(var(--theme-primary) / 0.5)",
-                      }}
+                      className={inputClass}
+                      style={inputStyle}
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -250,62 +302,83 @@ const ContactPage = () => {
                       placeholder="john@example.com"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition-all duration-200 focus:ring-1"
-                      style={{
-                        background: "hsl(var(--glass) / 50%)",
-                        border: "1px solid hsl(var(--glass-border) / 0.35)",
-                      }}
+                      className={inputClass}
+                      style={inputStyle}
                     />
                   </div>
                 </div>
 
-                {/* Subject */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs text-gray-400 font-medium uppercase tracking-widest">
-                    Subject
-                  </label>
-                  <select
-                    name="subject"
-                    required
-                    value={formData.subject}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all duration-200 focus:ring-1 appearance-none cursor-pointer"
+                {/* ── Have Account Toggle ── */}
+                <div
+                  className="flex items-center justify-between px-4 py-3.5 rounded-xl"
+                  style={{
+                    background: "hsl(var(--glass) / 50%)",
+                    border: "1px solid hsl(var(--glass-border) / 0.35)",
+                  }}
+                >
+                  <div>
+                    <p className="text-sm font-medium text-white">
+                      Do you have a Clarix account?
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {formData.have_account
+                        ? "Yes — we'll prioritise your request"
+                        : "No — we'll help you get started"}
+                    </p>
+                  </div>
+
+                  {/* Toggle button */}
+                  <button
+                    type="button"
+                    onClick={handleToggle}
+                    aria-label="Toggle have account"
+                    className="relative w-12 h-6 rounded-full p-0.5 flex-shrink-0 focus:outline-none transition-colors duration-300"
                     style={{
-                      background: "hsl(var(--glass) / 50%)",
-                      border: "1px solid hsl(var(--glass-border) / 0.35)",
-                      color: formData.subject ? "white" : "hsl(0 0% 40%)",
+                      backgroundColor: formData.have_account
+                        ? "hsl(var(--theme-primary))"
+                        : "hsl(var(--glass-border) / 0.4)",
                     }}
                   >
-                    <option value="" disabled>
-                      Select a topic…
-                    </option>
-                    <option value="general">General Inquiry</option>
-                    <option value="support">Technical Support</option>
-                    <option value="billing">Billing & Plans</option>
-                    <option value="partnership">Partnership</option>
-                    <option value="feedback">Feedback</option>
-                  </select>
+                    <motion.div
+                      className="w-5 h-5 rounded-full bg-white shadow-sm"
+                      animate={{ x: formData.have_account ? 24 : 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  </button>
                 </div>
 
-                {/* Message */}
+                {/* Description */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs text-gray-400 font-medium uppercase tracking-widest">
                     Message
                   </label>
                   <textarea
-                    name="message"
+                    name="description"
                     required
                     rows={5}
                     placeholder="Tell us what's on your mind…"
-                    value={formData.message}
+                    value={formData.description}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-gray-600 outline-none resize-none transition-all duration-200 focus:ring-1"
-                    style={{
-                      background: "hsl(var(--glass) / 50%)",
-                      border: "1px solid hsl(var(--glass-border) / 0.35)",
-                    }}
+                    style={inputStyle}
                   />
                 </div>
+
+                {/* API Error */}
+                {apiError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm text-red-400"
+                    style={{
+                      background: "rgba(239,68,68,0.08)",
+                      border: "1px solid rgba(239,68,68,0.2)",
+                    }}
+                  >
+                    <span className="flex-shrink-0">⚠</span>
+                    {apiError}
+                  </motion.div>
+                )}
 
                 {/* Submit */}
                 <button
@@ -316,25 +389,7 @@ const ContactPage = () => {
                 >
                   {sending ? (
                     <>
-                      <svg
-                        className="animate-spin w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8v8z"
-                        />
-                      </svg>
+                      <Spinner />
                       Sending…
                     </>
                   ) : (
@@ -347,12 +402,13 @@ const ContactPage = () => {
 
                 <p className="text-center text-gray-600 text-xs">
                   By submitting, you agree to our{" "}
-                  <span
-                    className="underline underline-offset-2 cursor-pointer"
+                  <a
+                    href="/privacy"
+                    className="underline underline-offset-2 transition-colors hover:text-white"
                     style={{ color: "hsl(var(--theme-primary))" }}
                   >
                     Privacy Policy
-                  </span>
+                  </a>
                   .
                 </p>
               </form>
@@ -379,13 +435,15 @@ const ContactPage = () => {
                     <span className="gradient-text-animated">Received!</span>
                   </h3>
                   <p className="text-gray-400 text-sm max-w-xs mx-auto">
-                    Thanks for reaching out, {formData.name || "friend"}! We&apos;ll
-                    reply to <strong className="text-white">{formData.email}</strong>{" "}
+                    Thanks for reaching out,{" "}
+                    <strong className="text-white">{formData.full_name}</strong>!
+                    We&apos;ll reply to{" "}
+                    <strong className="text-white">{formData.email}</strong>{" "}
                     within 24 hours.
                   </p>
                 </div>
                 <button
-                  onClick={() => { setSent(false); setFormData({ name: "", email: "", subject: "", message: "" }) }}
+                  onClick={handleReset}
                   className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 hover:scale-105"
                   style={{
                     background: "hsl(var(--glass) / 60%)",

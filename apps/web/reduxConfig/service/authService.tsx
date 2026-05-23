@@ -45,7 +45,6 @@ export const AuthApiSlice = RootApiService.injectEndpoints({
                 body: data,
             }),
         }),
-        // Task 1: Contact Us
         contactUs: builder.mutation({
             query: (data: {
                 full_name: string;
