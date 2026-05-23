@@ -1,40 +1,34 @@
+"use client";
+
 import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
-import { Check, Sparkles, Loader2, AlertCircle, Zap } from "lucide-react";
+import { Check, Sparkles, AlertCircle, Zap } from "lucide-react";
 import { useGetPlansQuery } from "@/reduxConfig/service/subscriptionService";
 import { useRouter } from "next/navigation";
 
-// Static metadata per position (description, popular badge, extra features)
-const PLAN_META: Record<number, { description: string; popular: boolean; extraFeatures: string[] }> = {
-  0: {
-    description: "Perfect for getting started",
-    popular: false,
-    extraFeatures: ["Email support", "Basic analytics"],
-  },
-  1: {
-    description: "For power users and creators",
-    popular: true,
-    extraFeatures: ["Priority support", "Prompt history", "Team sharing"],
-  },
-  2: {
-    description: "For teams and organizations",
-    popular: false,
-    extraFeatures: ["Priority support", "API access", "SSO integration", "Dedicated support"],
-  },
+// ── Types ─────────────────────────────────────────────────────────────────────
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  duration: number;
+  dailyLimit: number;
+  features: string[];
+}
+
+// ── Plan description keyed by plan name (mirrors choose-plan) ─────────────────
+const PLAN_DESCRIPTION: Record<string, string> = {
+  Free: "Perfect for getting started",
+  Pro: "For power users and creators",
+  Premium: "For teams and organizations",
+  "Pro Annual": "For power users and creators",
+  "Premium Annual": "For teams and organizations",
 };
 
-const buildFeatures = (plan: any, index: number): string[] => {
-  const meta = PLAN_META[index] ?? PLAN_META[0];
-  return [
-    `${plan.dailyLimit} prompts / day`,
-    `${plan.duration} month${plan.duration > 1 ? "s" : ""} access`,
-    "Advanced AI optimization",
-    "All AI models",
-    ...meta!.extraFeatures,
-  ];
-};
+// ── Popular badge keyed by plan name ─────────────────────────────────────────
+const POPULAR_PLANS = new Set(["Pro", "Premium Annual"]);
 
-// ── Skeleton card shown while loading ──────────────────────────────────────
+// ── Skeleton card shown while loading ────────────────────────────────────────
 const SkeletonCard = () => (
   <div className="relative glass-card p-8 animate-pulse">
     <div className="h-7 w-24 rounded-lg mb-2" style={{ background: "rgba(255,255,255,0.06)" }} />
@@ -50,23 +44,31 @@ const SkeletonCard = () => (
   </div>
 );
 
-// ── Main component ──────────────────────────────────────────────────────────
+// ── Main component ────────────────────────────────────────────────────────────
 export const PricingSection = () => {
-  const route = useRouter()
+  const router = useRouter();
   const ref = useRef<HTMLDivElement | null>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [isYearly, setIsYearly] = useState(false);
 
   const { data: plansData, isLoading, isError, refetch } = useGetPlansQuery({});
-  const plans: any[] = plansData?.data ?? [];
+  const allPlans: Plan[] = plansData?.data ?? [];
 
-  const getDisplayPrice = (price: number) =>
-    isYearly ? Math.round(price * 12 * 0.8) : price;
+  /**
+   * Monthly tab → free plan (price === 0) + monthly paid plans (duration === 1)
+   * Yearly  tab → annual paid plans (price > 0 && duration > 1)
+   *
+   * This matches the exact filtering logic in the choose-plan page so the
+   * section always reflects the real plan catalogue without any hardcoding.
+   */
+  const visiblePlans: Plan[] = isYearly
+    ? allPlans.filter((p) => p.price > 0 && p.duration > 1)
+    : allPlans.filter((p) => p.price === 0 || p.duration === 1);
 
   const colsClass =
-    plans.length === 1
+    visiblePlans.length === 1
       ? "max-w-sm mx-auto"
-      : plans.length === 2
+      : visiblePlans.length === 2
       ? "md:grid-cols-2 max-w-3xl mx-auto"
       : "md:grid-cols-3 max-w-6xl mx-auto";
 
@@ -74,7 +76,7 @@ export const PricingSection = () => {
     <section ref={ref} className="relative py-32">
       <div className="relative z-10 max-w-7xl mx-auto px-4">
 
-        {/* ── Header ───────────────────────────────────────────────────── */}
+        {/* ── Header ───────────────────────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -92,12 +94,16 @@ export const PricingSection = () => {
 
           {/* Billing toggle */}
           <div className="flex items-center justify-center gap-4">
-            <span className={`text-sm transition-colors ${!isYearly ? "text-[#ecfdf5]" : "text-[#7fbfb0]"}`}>
+            <span
+              className={`text-sm transition-colors ${
+                !isYearly ? "text-[#ecfdf5]" : "text-[#7fbfb0]"
+              }`}
+            >
               Monthly
             </span>
             <motion.button
               onClick={() => setIsYearly(!isYearly)}
-              className="relative w-14 h-8 rounded-full p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--theme-primary-raw)"
+              className="relative w-14 h-8 rounded-full p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-primary-raw)]"
               style={{ backgroundColor: "#15352a" }}
               whileTap={{ scale: 0.95 }}
               aria-label="Toggle billing cycle"
@@ -109,14 +115,20 @@ export const PricingSection = () => {
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             </motion.button>
-            <span className={`text-sm transition-colors ${isYearly ? "text-[#ecfdf5]" : "text-[#7fbfb0]"}`}>
+            <span
+              className={`text-sm transition-colors ${
+                isYearly ? "text-[#ecfdf5]" : "text-[#7fbfb0]"
+              }`}
+            >
               Yearly{" "}
-              <span className="ml-1 text-xs font-semibold text-var(--theme-primary-raw)">Save 20%</span>
+              <span className="ml-1 text-xs font-semibold text-[#00ffaa]">
+                Save 20%
+              </span>
             </span>
           </div>
         </motion.div>
 
-        {/* ── Loading skeletons ─────────────────────────────────────────── */}
+        {/* ── Loading skeletons ─────────────────────────────────────────────── */}
         {isLoading && (
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             <SkeletonCard />
@@ -125,7 +137,7 @@ export const PricingSection = () => {
           </div>
         )}
 
-        {/* ── Error state ───────────────────────────────────────────────── */}
+        {/* ── Error state ───────────────────────────────────────────────────── */}
         {isError && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -134,7 +146,10 @@ export const PricingSection = () => {
           >
             <div
               className="w-16 h-16 rounded-2xl flex items-center justify-center"
-              style={{ backgroundColor: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}
+              style={{
+                backgroundColor: "rgba(239,68,68,0.1)",
+                border: "1px solid rgba(239,68,68,0.2)",
+              }}
             >
               <AlertCircle className="w-7 h-7 text-red-400" />
             </div>
@@ -142,36 +157,62 @@ export const PricingSection = () => {
             <button
               onClick={() => refetch()}
               className="px-5 py-2 rounded-xl text-sm font-medium text-[#ecfdf5] transition-all hover:scale-105"
-              style={{ backgroundColor: "#15352a", border: "1px solid rgba(0,255,170,0.2)" }}
+              style={{
+                backgroundColor: "#15352a",
+                border: "1px solid rgba(0,255,170,0.2)",
+              }}
             >
               Try Again
             </button>
           </motion.div>
         )}
 
-        {/* ── Plan cards ───────────────────────────────────────────────── */}
-        {!isLoading && !isError && plans.length > 0 && (
-          <div className={`grid gap-8 ${colsClass}`}>
-            {plans.map((plan: any, index: number) => {
-              const meta = PLAN_META[index] ?? { description: "Great value plan", popular: false, extraFeatures: [] };
-              const displayPrice = getDisplayPrice(plan.price);
-              const features = buildFeatures(plan, index);
+        {/* ── Plan cards ───────────────────────────────────────────────────── */}
+        {!isLoading && !isError && visiblePlans.length > 0 && (
+          <motion.div
+            key={isYearly ? "yearly" : "monthly"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className={`grid gap-8 ${colsClass}`}
+          >
+            {visiblePlans.map((plan: Plan, index: number) => {
+              const isPopular = POPULAR_PLANS.has(plan.name);
+              const description =
+                PLAN_DESCRIPTION[plan.name] ?? "Great value plan";
+              const isAnnual = plan.duration > 1;
+              const perMonth = isAnnual
+                ? Math.round(plan.price / plan.duration)
+                : plan.price;
 
               return (
                 <motion.div
-                  key={plan.id ?? index}
+                  key={plan.id}
                   initial={{ opacity: 0, y: 50 }}
                   animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ delay: index * 0.15, duration: 0.6, ease: "easeOut" }}
+                  transition={{
+                    delay: index * 0.15,
+                    duration: 0.6,
+                    ease: "easeOut",
+                  }}
                   whileHover={{ y: -12 }}
-                  className={`relative glass-card p-8 ${meta.popular ? "neon-glow-box" : ""}`}
-                  style={meta.popular ? { borderColor: "rgba(0,255,170,0.4)" } : undefined}
+                  className={`relative glass-card p-8 flex flex-col ${
+                    isPopular ? "neon-glow-box" : ""
+                  }`}
+                  style={
+                    isPopular
+                      ? { borderColor: "rgba(0,255,170,0.4)" }
+                      : undefined
+                  }
                 >
                   {/* Popular badge */}
-                  {meta.popular && (
+                  {isPopular && (
                     <motion.div
                       className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 shimmer whitespace-nowrap"
-                      style={{ backgroundColor: "var(--theme-primary-raw)", color: "#022014" }}
+                      style={{
+                        backgroundColor: "var(--theme-primary-raw)",
+                        color: "#022014",
+                      }}
                       animate={{
                         boxShadow: [
                           "0 0 15px rgba(0,255,170,0.3)",
@@ -188,77 +229,94 @@ export const PricingSection = () => {
 
                   {/* Title */}
                   <div className="mb-6">
-                    <h3 className="text-2xl font-bold mb-2 text-[#ecfdf5]">{plan.name}</h3>
-                    <p className="text-sm text-[#7fbfb0]">{meta.description}</p>
+                    <h3 className="text-2xl font-bold mb-2 text-[#ecfdf5]">
+                      {plan.name}
+                    </h3>
+                    <p className="text-sm text-[#7fbfb0]">{description}</p>
                   </div>
 
                   {/* Price */}
                   <div className="mb-8">
                     <motion.div
-                      key={isYearly ? "yearly" : "monthly"}
-                      initial={{ opacity: 0, y: -10 }}
+                      key={plan.id}
+                      initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ type: "spring", stiffness: 300, damping: 25 }}
                       className="flex items-baseline gap-1"
                     >
                       <span className="text-5xl font-bold text-[#ecfdf5]">
-                        ₹{displayPrice}
+                        ₹{plan.price}
                       </span>
-                      <span className="text-[#7fbfb0] text-sm">
-                        /{isYearly ? "year" : "month"}
+                      <span className="text-[#7fbfb0] text-sm ml-1">
+                        /{isAnnual ? "year" : "month"}
                       </span>
                     </motion.div>
-                    {isYearly && plan.price > 0 && (
+                    {isAnnual && (
                       <p className="text-xs text-[#7fbfb0] mt-1">
-                        ≈ ₹{Math.round(displayPrice / 12)}/mo · billed annually
+                        ≈ ₹{perMonth}/mo · billed annually
+                      </p>
+                    )}
+                    {plan.price === 0 && (
+                      <p className="text-xs text-[#00ffaa] mt-1 font-medium">
+                        Free forever
                       </p>
                     )}
                   </div>
 
-                  {/* Features */}
-                  <ul className="space-y-3.5 mb-8">
-                    {features.map((feature: string, i: number) => (
+                  {/* Features — sourced directly from API */}
+                  <ul className="space-y-3.5 mb-8 flex-1">
+                    {plan.features.map((feature: string, i: number) => (
                       <motion.li
                         key={feature}
                         initial={{ opacity: 0, x: -10 }}
                         animate={isInView ? { opacity: 1, x: 0 } : {}}
-                        transition={{ delay: index * 0.15 + i * 0.08 + 0.3 }}
+                        transition={{
+                          delay: index * 0.15 + i * 0.08 + 0.3,
+                        }}
                         className="flex items-center gap-3 text-sm text-[#ecfdf5]"
                       >
                         <div
                           className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
                           style={{ backgroundColor: "rgba(0,255,170,0.15)" }}
                         >
-                          <Check className="w-3 h-3 text-(--theme-primary-raw)" />
+                          <Check className="w-3 h-3 text-[var(--theme-primary-raw)]" />
                         </div>
                         {feature}
                       </motion.li>
                     ))}
                   </ul>
 
-                  {/* CTA */}
+                  {/* CTA — redirects to /choose-plan */}
                   <motion.button
-                  onClick={()=>{route.push("/choose-plan")}}
+                    onClick={() => router.push("/choose-plan")}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
                     style={
-                      meta.popular
-                        ? { backgroundColor: "var(--theme-primary-raw)", color: "#022014", boxShadow: "0 0 20px rgba(0,255,170,0.3)" }
-                        : { backgroundColor: "#15352a", color: "#ecfdf5", border: "1px solid rgba(0,255,170,0.15)" }
+                      isPopular
+                        ? {
+                            backgroundColor: "var(--theme-primary-raw)",
+                            color: "#022014",
+                            boxShadow: "0 0 20px rgba(0,255,170,0.3)",
+                          }
+                        : {
+                            backgroundColor: "#15352a",
+                            color: "#ecfdf5",
+                            border: "1px solid rgba(0,255,170,0.15)",
+                          }
                     }
                   >
-                    {meta.popular && <Zap className="w-4 h-4" />}
-                    Get Started
+                    {isPopular && <Zap className="w-4 h-4" />}
+                    {plan.price === 0 ? "Start for Free" : "Get Started"}
                   </motion.button>
                 </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
 
-        {/* ── Empty state ───────────────────────────────────────────────── */}
-        {!isLoading && !isError && plans.length === 0 && (
+        {/* ── Empty state ───────────────────────────────────────────────────── */}
+        {!isLoading && !isError && visiblePlans.length === 0 && (
           <div className="text-center py-20 text-[#7fbfb0]">
             No plans available at the moment.
           </div>
